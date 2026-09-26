@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RFT SST">
+  <meta name="application-name" content="RFT SST">
+  <meta name="theme-color" content="#0b5f2a">
+  <link rel="manifest" href="data:application/manifest+json,{&quot;name&quot;:&quot;Relat\u00f3rio de Treinamento SST&quot;,&quot;short_name&quot;:&quot;RFT SST&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;background_color&quot;:&quot;#0b5f2a&quot;,&quot;theme_color&quot;:&quot;#0b5f2a&quot;}">
+  <title>Relatório de Treinamento de Segurança</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --primary: #0b5f2a;
+      --primary-dark: #084420;
+      --primary-light: #e8f5ec;
+      --ok: #0b5f2a;
+      --ok-bg: #d1fae5;
+      --nc: #b00020;
+      --border: #c8d0c8;
+      --bg: #f0f4f1;
+      --card: #ffffff;
+      --muted: #5a635a;
+      --radius: 12px;
+      --tap: 48px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      color: #1a1f1a;
+      background: var(--bg);
+      padding: 12px;
+      padding-bottom: 140px;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 4px; color: #fff; line-height: 1.3; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; color: var(--primary-dark); border-bottom: 2px solid var(--primary); padding-bottom: 6px; }
+    .doc-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff; border-radius: var(--radius); padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+    }
+    .doc-header .subtitle { font-size: 0.9rem; opacity: .92; margin: 0; }
+    .badge-header { display: inline-block; background: rgba(255,255,255,.2); padding: 2px 10px; border-radius: 999px; font-size: 0.75rem; margin-top: 8px; }
+    section.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+    label.field-label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .02em; }
+    input[type="text"], input[type="date"], input[type="datetime-local"], textarea, select {
+      width: 100%; font: inherit; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #fff; color: #1a1f1a; -webkit-appearance: none; appearance: none; min-height: var(--tap);
+    }
+    textarea { min-height: 72px; resize: vertical; overflow: auto; line-height: 1.45; max-height: 220px; }
+    .text-flow {
+      display: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      font: inherit;
+      line-height: 1.45;
+      color: #1a1f1a;
+    }
+    input:focus, textarea:focus, select:focus { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 520px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+    .header-row { display: flex; gap: 14px; align-items: flex-start; }
+    .header-text { flex: 1; min-width: 0; }
+    .logo-box {
+      flex: 0 0 92px; width: 92px; height: 92px; background: #fff; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(255,255,255,.35);
+    }
+    .logo-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .logo-placeholder { font-size: 0.65rem; color: var(--primary-dark); text-align: center; padding: 6px; line-height: 1.2; }
+    .logo-actions { margin-top: 8px; }
+    .slots-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 560px) { .slots-grid { grid-template-columns: 1fr 1fr; } }
+    .slot { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px; background: #fafcfa; break-inside: avoid; page-break-inside: avoid; }
+    .slot-num { font-weight: 700; color: var(--primary-dark); font-size: 0.95rem; margin-bottom: 6px; }
+    .modulo {
+      border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #fff;
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    .modulo h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--primary-dark); }
+    .modulo textarea { min-height: 64px; }
+    .photo-preview-wrap { position: relative; margin-top: 8px; display: none; min-height: 0; }
+    .photo-preview-wrap.has-photo { display: block; }
+    .photo-preview { width: 100%; max-height: 200px; object-fit: contain; border-radius: 10px; border: 1px solid var(--border); background: #eee; }
+    .photo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .file-input-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0,0,0,0); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: var(--tap); padding: 12px 18px; border: none; border-radius: 10px; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:active { background: var(--primary-dark); }
+    .btn-secondary { background: #fff; color: var(--primary-dark); border: 1.5px solid var(--primary); }
+    .btn-danger { background: #fff; color: var(--nc); border: 1.5px solid var(--nc); min-height: 40px; padding: 8px 14px; font-size: 0.85rem; }
+    .btn-ghost { background: var(--primary-light); color: var(--primary-dark); border: 1px dashed var(--primary); }
+    .btn-block { width: 100%; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .toolbar-bottom { position: fixed; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-top: 1px solid var(--border); padding: 10px 12px; padding-bottom: max(10px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,.06); }
+    .toolbar-row { display: flex; gap: 8px; }
+    .toolbar-row .btn { flex: 1; }
+    .hint { font-size: 0.8rem; color: var(--muted); margin: 0 0 10px; }
+    .toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #1a1f1a; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 0.9rem; z-index: 200; max-width: 90%; text-align: center; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+    .toast.show { display: block; }
+    .overlay-loading { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: center; justify-content: center; }
+    .overlay-loading.show { display: flex; }
+    .overlay-box { background: #fff; border-radius: 14px; padding: 28px 32px; text-align: center; max-width: 280px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto 14px; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pdf-ready-sheet { display: none; position: fixed; inset: 0; z-index: 400; align-items: flex-end; justify-content: center; }
+    .pdf-ready-sheet.show { display: flex; }
+    .pdf-ready-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+    .pdf-ready-panel { position: relative; width: 100%; max-width: 480px; background: #fff; border-radius: 16px 16px 0 0; padding: 20px 18px max(18px, env(safe-area-inset-bottom)); z-index: 1; }
+    .pdf-ready-handle { width: 40px; height: 4px; background: var(--border); border-radius: 999px; margin: 0 auto 14px; }
+    .pdf-ready-title { margin: 0 0 4px; font-size: 1.2rem; color: var(--primary-dark); text-align: center; }
+    .pdf-ready-filename { margin: 0 0 14px; font-size: 0.85rem; color: var(--muted); text-align: center; word-break: break-all; }
+    .pdf-ready-actions { display: flex; flex-direction: column; gap: 8px; }
+    .pdf-ready-actions .btn-link { background: transparent; color: var(--muted); border: none; font-weight: 500; min-height: 40px; text-decoration: underline; }
+    .toolbar-hint { font-size: 0.75rem; color: var(--muted); text-align: center; margin: 0; }
+    .install-banner {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+    .install-banner p { margin: 0 0 8px; font-size: 0.88rem; color: #1a1f1a; }
+    .install-banner .row { display: flex; gap: 8px; }
+    .instrutor-row { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; background: #fff; }
+    .tipo-banner { background: var(--primary-light); border-radius: 10px; padding: 10px 12px; font-weight: 700; color: var(--primary-dark); margin-bottom: 10px; }
+    body.pdf-mode .no-pdf { display: none !important; }
+    body.pdf-mode .toolbar-bottom { display: none !important; }
+    body.pdf-mode .pdf-ready-sheet { display: none !important; }
+    body.pdf-mode .photo-actions { display: none !important; }
+    body.pdf-mode { background: #fff; padding: 8px; }
+    body.pdf-mode section.card,
+    body.pdf-mode .slot,
+    body.pdf-mode .modulo,
+    body.pdf-mode .instrutor-row,
+    body.pdf-mode .doc-header {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      box-shadow: none;
+    }
+    body.pdf-mode .slots-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    body.pdf-mode .photo-preview { max-height: 170px; }
+    body.pdf-mode textarea { display: none !important; }
+    body.pdf-mode .text-flow { display: block !important; }
+    body.pdf-mode input, body.pdf-mode select {
+      border: none; background: transparent; padding: 0 0 2px; min-height: 0;
+    }
+    @media print {
+      .no-pdf, .toolbar-bottom, .overlay-loading, .toast, .pdf-ready-sheet { display: none !important; }
+      .photo-actions { display: none !important; }
+      body { background: #fff; padding: 0; }
+      section.card, .slot, .modulo { box-shadow: none; break-inside: avoid; page-break-inside: avoid; }
+      .slots-grid { grid-template-columns: 1fr 1fr; }
+      textarea { display: none !important; }
+      .text-flow { display: block !important; white-space: pre-wrap; word-break: break-word; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="loadingOverlay" class="overlay-loading" aria-hidden="true">
+    <div class="overlay-box">
+      <div class="spinner"></div>
+      <div id="loadingText">Gerando PDF…</div>
+    </div>
+  </div>
+  <div id="pdfReadySheet" class="pdf-ready-sheet no-pdf" aria-hidden="true">
+    <div class="pdf-ready-backdrop" id="pdfReadyBackdrop"></div>
+    <div class="pdf-ready-panel">
+      <div class="pdf-ready-handle"></div>
+      <h2 class="pdf-ready-title">PDF pronto</h2>
+      <p class="pdf-ready-filename" id="pdfReadyFilename">—</p>
+      <div class="pdf-ready-actions">
+        <button type="button" class="btn btn-primary btn-block" id="btnSharePdf">Compartilhar (WhatsApp / e-mail)</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnWhatsApp">WhatsApp da equipe</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnEmailEquipe">E-mail da equipe</button>
+        <button type="button" class="btn btn-ghost btn-block" id="btnExportXlsx">Exportar planilha SST</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnOpenPdf">Abrir PDF</button>
+        <button type="button" class="btn btn-link btn-block" id="btnClosePdfSheet">Fechar</button>
+      </div>
+      <p class="toolbar-hint">No iPhone, toque em Compartilhar. Se não aparecer, use Abrir PDF.</p>
+    </div>
+  </div>
+
+  <div id="installBanner" class="install-banner no-pdf">
+    <p><strong>Atalho no celular:</strong> iPhone — Compartilhar → Adicionar à Tela de Início. Android — menu ⋮ → Adicionar à tela inicial. Depois é só tocar no ícone.</p>
+    <div class="row">
+      <button type="button" class="btn btn-secondary" id="btnCopyLink" style="flex:1;min-height:40px;padding:8px 12px;font-size:0.85rem">Copiar link</button>
+      <button type="button" class="btn btn-ghost" id="btnHideInstall" style="flex:1;min-height:40px;padding:8px 12px;font-size:0.85rem">Ok, entendi</button>
+    </div>
+  </div>
+  <div id="report">
+    <header class="doc-header">
+      <div class="header-row">
+        <div class="logo-box" id="logoBox">
+          <img id="logoImg" alt="Logo" style="display:none">
+          <div class="logo-placeholder" id="logoPlaceholder">Logo da empresa</div>
+        </div>
+        <div class="header-text">
+          <h1>Relatório de Evidências Fotográficas — Treinamento de Segurança</h1>
+          <p class="subtitle">SST · Relatório de capacitação de campo</p>
+          <span class="badge-header" id="headerNumBadge">VVDS - RFT - —</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Identificação</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="empresa">Empreendimento / Empresa</label>
+          <input type="text" id="empresa" placeholder="Ex.: LT 500 KV BURITIZEIRO 03 – SÃO GOTARDO 02 C1">
+        </div>
+        <div class="field">
+          <label class="field-label" for="local">Local / Frente</label>
+          <input type="text" id="local" placeholder="Local do treinamento">
+        </div>
+        <div class="field">
+          <label class="field-label" for="dataHora">Data e hora</label>
+          <input type="datetime-local" id="dataHora">
+        </div>
+        <div class="field">
+          <label class="field-label" for="numRelatorio">Número do relatório</label>
+          <input type="text" id="numRelatorio" placeholder="VVDS - RFT - 00000000001">
+          <p class="hint no-pdf" style="margin-top:6px">Pode editar o número. A sequência do aparelho acompanha o valor aplicado.</p>
+          <div class="photo-actions no-pdf" style="margin-top:6px">
+            <button type="button" class="btn btn-secondary" id="btnAplicarNumero" style="min-height:40px;padding:8px 14px;font-size:0.85rem">Aplicar número</button>
+            <button type="button" class="btn btn-ghost" id="btnProximoNumero" style="min-height:40px;padding:8px 14px;font-size:0.85rem">Próximo da sequência</button>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="tipoTreinamento">Modelo do treinamento</label>
+        <select id="tipoTreinamento">
+          <option value="">Selecione o treinamento…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="participantes">Participantes (nome e função)</label>
+        <textarea id="participantes" rows="4" placeholder="Um por linha. Ex.: João da Silva — Montador Lançamento I"></textarea>
+      </div>
+      <div class="tipo-banner" id="tipoBanner">Nenhum modelo selecionado</div>
+      <div class="field logo-actions no-pdf">
+        <label class="field-label">Logo da empresa / terceira</label>
+        <div class="photo-actions">
+          <button type="button" class="btn btn-secondary" id="btnPickLogo">📎 Trocar logo</button>
+          <button type="button" class="btn btn-ghost" id="btnLogoPadrao">Logo Vividense</button>
+          <button type="button" class="btn btn-danger" id="btnRemoveLogo">Sem logo</button>
+        </div>
+        <input type="file" class="file-input-hidden" id="logoFile" accept="image/*">
+        <p class="hint" style="margin-top:8px">Padrão: logo Vividense. Troque pela logo da terceira quando for o caso. A escolha fica salva neste aparelho.</p>
+      </div>
+    </section>
+
+<section class="card">
+      <h2>1. Introdução</h2>
+      <p class="hint no-pdf">Texto-modelo preenchido automaticamente. Pode editar se precisar.</p>
+      <textarea id="introducao" rows="6" placeholder="A introdução será preenchida ao escolher o modelo."></textarea>
+    </section>
+
+<section class="card">
+      <h2>2. Instrutores</h2>
+      <p class="hint no-pdf">Preencha manualmente nome e função. Use + para mais instrutores.</p>
+      <div id="instrutoresList"></div>
+      <button type="button" class="btn btn-ghost btn-block no-pdf" id="btnAddInstrutor">+ Adicionar instrutor</button>
+    </section>
+
+<section class="card">
+      <h2>3. Evidências fotográficas</h2>
+      <p class="hint no-pdf">As legendas vêm do modelo escolhido. Anexe foto da câmera ou da galeria. Slots extras podem ser adicionados.</p>
+      <div id="slotsContainer" class="slots-grid"></div>
+      <button type="button" class="btn btn-ghost btn-block no-pdf" id="btnAddSlot">+ Adicionar foto extra</button>
+    </section>
+
+<section class="card">
+      <h2>4. Assuntos abordados / Conteúdo programático</h2>
+      <p class="hint no-pdf">Cada módulo fica em um bloco separado para não cortar no PDF. Você pode editar o texto.</p>
+      <div id="modulosContainer"></div>
+    </section>
+
+<section class="card">
+      <h2>5. Conclusão</h2>
+      <p class="hint no-pdf">Complete com o(s) nome(s) e função(ões) do(s) colaborador(es).</p>
+      <textarea id="conclusao" rows="6"></textarea>
+    </section>
+  </div>
+
+  <div class="toolbar-bottom no-pdf">
+    <p class="toolbar-hint">Ao gerar o PDF o registro entra na planilha da equipe. Compartilhe por WhatsApp ou e-mail.</p>
+    <div class="toolbar-row">
+      <button type="button" class="btn btn-primary" id="btnGerarPdf">Gerar PDF</button>
+      <button type="button" class="btn btn-secondary" id="btnPrintFallback">Abrir para imprimir</button>
+    </div>
+    <div class="toolbar-row">
+      <button type="button" class="btn btn-ghost" id="btnExportXlsxBar">Exportar planilha SST</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function padN(n, w) { var s = String(n); while (s.length < w) s = '0' + s; return s; }
+  function fitTextarea(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.overflow = 'hidden';
+    el.style.height = Math.max(el.scrollHeight, 48) + 'px';
+  }
+  function fitAllTextareas(root) {
+    var scope = root || document;
+    var list = scope.querySelectorAll ? scope.querySelectorAll('textarea') : [];
+    for (var i = 0; i < list.length; i++) fitTextarea(list[i]);
+  }
+  function ensureTextFlow(ta) {
+    if (!ta || !ta.parentNode) return null;
+    var next = ta.nextElementSibling;
+    if (next && next.classList.contains('text-flow')) return next;
+    var d = document.createElement('div');
+    d.className = 'text-flow';
+    d.setAttribute('aria-hidden', 'true');
+    ta.parentNode.insertBefore(d, ta.nextSibling);
+    return d;
+  }
+  function syncTextFlows(root) {
+    var scope = root || document;
+    var list = scope.querySelectorAll ? scope.querySelectorAll('textarea') : [];
+    for (var i = 0; i < list.length; i++) {
+      var flow = ensureTextFlow(list[i]);
+      if (flow) flow.textContent = list[i].value || '';
+    }
+  }
+  function showToast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 2800);
+  }
+  function setLoading(on, text) {
+    var ov = $('loadingOverlay');
+    if (text) $('loadingText').textContent = text;
+    if (on) ov.classList.add('show'); else ov.classList.remove('show');
+  }
+  function formatLocalDateTimeInput(d) {
+    return d.getFullYear() + '-' + padN(d.getMonth() + 1, 2) + '-' + padN(d.getDate(), 2) + 'T' + padN(d.getHours(), 2) + ':' + padN(d.getMinutes(), 2);
+  }
+
+  var SEQ_KEY = 'vvds_rft_seq';
+  var LOGO_KEY = 'vvds_rft_logo';
+  var DEFAULT_LOGO = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">' +
+    '<rect width="256" height="256" rx="28" fill="#0b5f2a"/>' +
+    '<rect x="14" y="14" width="228" height="228" rx="20" fill="none" stroke="#e8f5ec" stroke-width="6"/>' +
+    '<text x="128" y="118" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="52" font-weight="700" fill="#ffffff">VVDS</text>' +
+    '<text x="128" y="168" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="600" fill="#d1fae5">VIVIDENSE</text>' +
+    '</svg>'
+  );
+
+  function formatReportNum(n) {
+    n = parseInt(n, 10);
+    if (!n || n < 1) n = 1;
+    return 'VVDS - RFT - ' + padN(n, 11);
+  }
+  function parseReportNum(s) {
+    var m = String(s || '').match(/(\d+)\s*$/);
+    var n = m ? parseInt(m[1], 10) : 0;
+    return n > 0 ? n : 0;
+  }
+  function getSeq() {
+    var n = parseInt(localStorage.getItem(SEQ_KEY) || '0', 10);
+    return n > 0 ? n : 0;
+  }
+  function setSeq(n) {
+    n = parseInt(n, 10);
+    if (!n || n < 1) n = 1;
+    localStorage.setItem(SEQ_KEY, String(n));
+    return n;
+  }
+  function showReportNumber(n) {
+    var label = formatReportNum(n);
+    $('numRelatorio').value = label;
+    $('headerNumBadge').textContent = label;
+    return label;
+  }
+  function peekNextNumber() {
+    return getSeq() + 1;
+  }
+  function applyNumberFromField() {
+    var n = parseReportNum($('numRelatorio').value);
+    if (!n) n = peekNextNumber();
+    setSeq(n);
+    showReportNumber(n);
+    showToast('Número aplicado: ' + formatReportNum(n));
+  }
+  function useNextInSequence() {
+    var n = peekNextNumber();
+    setSeq(n);
+    showReportNumber(n);
+    showToast('Sequência: ' + formatReportNum(n));
+  }
+
+  function applyLogo(dataUrl, persist) {
+    var img = $('logoImg');
+    var ph = $('logoPlaceholder');
+    if (dataUrl) {
+      img.src = dataUrl;
+      img.style.display = 'block';
+      ph.style.display = 'none';
+      if (persist) {
+        try { localStorage.setItem(LOGO_KEY, dataUrl); } catch (e) {}
+      }
+    } else {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+      ph.style.display = '';
+      if (persist) {
+        try { localStorage.setItem(LOGO_KEY, ''); } catch (e) {}
+      }
+    }
+  }
+  function loadSavedLogo() {
+    var saved = null;
+    try { saved = localStorage.getItem(LOGO_KEY); } catch (e) { saved = null; }
+    if (saved === '') applyLogo(null, false);
+    else if (saved) applyLogo(saved, false);
+    else applyLogo(DEFAULT_LOGO, false);
+  }
+
+  var REG_KEY = 'vvds_rft_registro';
+  var MAIL_KEY = 'vvds_rft_email_equipe';
+
+  function loadRegistry() {
+    try {
+      var raw = localStorage.getItem(REG_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+  function saveRegistry(list) {
+    try { localStorage.setItem(REG_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+  function collectInstrutores() {
+    var nomes = [];
+    var rows = document.querySelectorAll('#instrutoresList .instrutor-row');
+    for (var i = 0; i < rows.length; i++) {
+      var n = (rows[i].querySelector('[data-role="inst-nome"]').value || '').trim();
+      var f = (rows[i].querySelector('[data-role="inst-funcao"]').value || '').trim();
+      if (n || f) nomes.push((n || '—') + (f ? ' (' + f + ')' : ''));
+    }
+    return nomes.join('; ');
+  }
+  function countParticipantes(text) {
+    var lines = String(text || '').split(/\n|;/);
+    var n = 0;
+    for (var i = 0; i < lines.length; i++) if (lines[i].trim()) n++;
+    return n;
+  }
+  function tipoLabel() {
+    var sel = $('tipoTreinamento');
+    if (!sel) return '';
+    var opt = sel.options[sel.selectedIndex];
+    return opt ? opt.textContent : '';
+  }
+  function formatDataBr() {
+    var raw = $('dataHora').value || '';
+    if (raw.length >= 10) {
+      var p = raw.slice(0, 10).split('-');
+      return p[2] + '/' + p[1] + '/' + p[0];
+    }
+    var d = new Date();
+    return padN(d.getDate(), 2) + '/' + padN(d.getMonth() + 1, 2) + '/' + d.getFullYear();
+  }
+  function collectRecord() {
+    var part = ($('participantes') && $('participantes').value) || '';
+    return {
+      numero: $('numRelatorio').value || '',
+      data: formatDataBr(),
+      treinamento: tipoLabel() || 'Treinamento de Segurança',
+      empresa: ($('empresa') && $('empresa').value) || '',
+      local: ($('local') && $('local').value) || '',
+      instrutores: collectInstrutores(),
+      participantes: part.trim(),
+      qtd: countParticipantes(part),
+      status: 'Realizado',
+      arquivo: (window.__lastPdfName || pdfFilename()),
+      observacao: '',
+      registrado: new Date().toLocaleString('pt-BR')
+    };
+  }
+  function upsertRecord(rec) {
+    var list = loadRegistry();
+    var found = -1;
+    for (var i = 0; i < list.length; i++) if (list[i].numero === rec.numero) found = i;
+    if (found >= 0) list[found] = rec; else list.push(rec);
+    saveRegistry(list);
+    return list;
+  }
+  function mensagemEquipe(rec) {
+    rec = rec || collectRecord();
+    return (
+      'Relatório de Treinamento SST\n' +
+      rec.numero + '\n' +
+      rec.treinamento + '\n' +
+      'Data: ' + rec.data + '\n' +
+      (rec.empresa ? 'Empreendimento: ' + rec.empresa + '\n' : '') +
+      (rec.local ? 'Local: ' + rec.local + '\n' : '') +
+      (rec.instrutores ? 'Instrutores: ' + rec.instrutores + '\n' : '') +
+      (rec.qtd ? 'Participantes: ' + rec.qtd + '\n' : '') +
+      'Status: ' + rec.status
+    );
+  }
+  function csvEscape(v) {
+    var s = String(v == null ? '' : v);
+    if (/[",;\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+  function exportRegistryXlsx() {
+    var list = loadRegistry();
+    if (!list.length) {
+      showToast('Nenhum relatório registrado neste aparelho ainda.');
+      return;
+    }
+    var headers = ['Número do relatório','Data','Treinamento','Empreendimento / Empresa','Local / Frente','Instrutores','Participantes','Qtd. participantes','Status','Arquivo PDF','Observação','Registrado em'];
+    var lines = [headers.join(';')];
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i];
+      lines.push([
+        r.numero, r.data, r.treinamento, r.empresa, r.local, r.instrutores,
+        r.participantes, r.qtd, r.status, r.arquivo, r.observacao, r.registrado
+      ].map(csvEscape).join(';'));
+    }
+    var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Controle-SST-Treinamentos-export.csv';
+    document.body.appendChild(a);
+    a.click();
+    if (a.parentNode) a.parentNode.removeChild(a);
+    showToast('Planilha exportada. Cole as linhas na planilha-mestre da equipe.');
+  }
+  function openWhatsAppEquipe() {
+    var rec = collectRecord();
+    var text = mensagemEquipe(rec);
+    if (navigator.share && window.__lastPdfFile) {
+      navigator.share({ files: [window.__lastPdfFile], title: rec.numero, text: text }).catch(function (e) {
+        if (e && e.name === 'AbortError') return;
+        window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+      });
+      return;
+    }
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+  function openEmailEquipe() {
+    var rec = collectRecord();
+    var text = mensagemEquipe(rec);
+    var to = '';
+    try { to = localStorage.getItem(MAIL_KEY) || ''; } catch (e) {}
+    if (!to) {
+      to = window.prompt('E-mail da equipe SST (fica salvo neste aparelho):', '') || '';
+      if (to) try { localStorage.setItem(MAIL_KEY, to); } catch (e2) {}
+    }
+    var mailto = 'mailto:' + encodeURIComponent(to) +
+      '?subject=' + encodeURIComponent(rec.numero + ' — ' + rec.treinamento) +
+      '&body=' + encodeURIComponent(text + '\n\nAnexe o PDF gerado (Compartilhar ou Abrir PDF).');
+    window.location.href = mailto;
+  }
+
+  function fotos(list) {
+    return list.map(function (d, i) { return { titulo: 'Foto ' + padN(i + 1, 2), descricao: d }; });
+  }
+
+  var NR12_PROG = [
+    'Norma Regulamentadora 12 — Apresentação;',
+    'Estrutura da NR 12;',
+    'Gestão dos riscos em máquinas e equipamentos;',
+    'Sinalização;',
+    'Medidas de proteção de máquinas;',
+    'Riscos nos postos de trabalho;',
+    'Avaliação das medidas do ambiente de trabalho;',
+    'Procedimento em relação à máquina;',
+    'Riscos adicionais;',
+    'Equipamento de Proteção Individual — EPI;',
+    'Equipamento de Proteção Coletiva — EPC;',
+    'Primeiros Socorros.'
+  ].join('\n');
+
+  var NR11_PROG = [
+    'Norma Regulamentadora 11 e/ou NR 12 — Apresentação;',
+    'Estrutura da NR 11 e/ou NR 12;',
+    'Gestão dos riscos em máquinas e equipamentos;',
+    'Sinalização;',
+    'Medidas de proteção de máquinas;',
+    'Riscos nos postos de trabalho;',
+    'Avaliação das medidas do ambiente de trabalho;',
+    'Procedimento em relação à máquina;',
+    'Riscos adicionais;',
+    'EPI e EPC;',
+    'Primeiros Socorros.'
+  ].join('\n');
+
+  var FOTOS_NR10 = fotos([
+    'Apresentação da Norma Regulamentadora 10 no ato de planejar e executar as atividades de forma a garantir integridade dos envolvidos direta ou indiretamente.',
+    'Orientação quanto à implementação de medidas de controle e sistemas preventivos quando há interação em instalações elétricas e serviços com eletricidade.',
+    'Choque elétrico, seus mecanismos e efeitos; orientação da formação de arcos elétricos e os danos possíveis: queimaduras, quedas e até a morte.',
+    'Importância documental, uso de EPIs, EPCs e aterramentos das estruturas, maquinários e da aptidão para atividade com risco elétrico.',
+    'Documentação prévia de instalações elétricas e responsabilidades legais — execução somente mediante as mesmas.',
+    'Bloqueios e impedimentos; importância das barreiras e invólucros como sistemas de defesa.',
+    'Diferença de atuação em linha desenergizada (linha morta) e energizada, evidenciando que a prudência deve permanecer em todas as fases.',
+    'Diferença entre Método ao Contato, Método ao Potencial e Método a Distância, reforçando a resistência do corpo humano à eletricidade.',
+    'Orientações ilustrativas de procedimentos básicos de primeiros socorros, atendimento em emergências, controle de hemorragias, fraturas, desmaios e demais ocorrências.',
+    'Técnica de imobilização e pranchamento da vítima para estabilização e remoção segura em emergências decorrentes de choque elétrico.',
+    'Atividade prática simulada de primeiros socorros, com atendimento à vítima sob orientação de profissional da área da saúde.',
+    'Procedimentos de elevação da maca para ambulância, talas de imobilização e instalação do Red Block, visando transporte seguro.'
+  ]);
+
+  var FOTOS_NR35 = fotos([
+    'Apresentação da NR-35 no ato de planejar e executar as atividades de forma a garantir a integridade dos envolvidos.',
+    'Apresentação dos equipamentos exigíveis utilizados para montagem e lançamento.',
+    'Apresentação prática dos principais nós de ancoragem visando a correta aplicação das técnicas de segurança em altura.',
+    'Instrução da correta utilização, inspeção prévia e critérios para identificação de avarias e dos fatores de queda 0, 1 e 2.',
+    'Orientação sobre pontos de ancoragem: tipos, critérios de seleção e forma correta de utilização, inclusive em resgate.',
+    'Montagem do sistema de resgate, com descensor antipânico e prolongamento da ancoragem com cinta, eliminando atrito da corda na estrutura.',
+    'Colaborador realizando simulado de socorro e resgate com o sistema de resgate.',
+    'Orientações práticas sobre técnicas de resgate em altura, equipamentos e métodos seguros.',
+    'Procedimentos básicos de primeiros socorros, controle de hemorragias, fraturas, desmaios e demais ocorrências.',
+    'Técnica de imobilização e pranchamento da vítima para estabilização e remoção segura.',
+    'Atividade prática simulada de primeiros socorros sob orientação de profissional da saúde.',
+    'Elevação da maca para ambulância, talas de imobilização e instalação do Red Block.'
+  ]);
+
+  function introPadrao(nomeAtiv, nr) {
+    return 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento teórico e prático de ' + nomeAtiv + ', no qual o Técnico de Segurança e/ou o Operador Proficiente capacitam o colaborador para exercer a função com segurança, seguindo a(s) normativa(s) vigente(s) ' + nr + '.';
+  }
+
+  var MODELOS = [
+    {
+      id: 'nr10-basica',
+      titulo: 'Treinamento NR-10 - Básica',
+      intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento teórico e prático de NR 10 – Básica, 40 Horas, capacitando o colaborador para exercer o trabalho com segurança, seguindo a normativa vigente de número 10.',
+      assuntos: 'Módulo 1 – Segurança no Trabalho\n1.1 Instrução à segurança com eletricidade;\n1.2 Riscos em instalações e serviços com eletricidade: I. Choque elétrico, mecanismo e efeitos; II. Arcos elétricos, queimaduras e quedas; III. Campos eletromagnéticos;\n1.3 Equipamentos de proteção individual;\n1.4 Equipamentos de proteção coletiva.\n\nMódulo 2 – Segurança no Trabalho\n2.1 Técnicas de Análise de Risco;\n2.2 Riscos adicionais: altura, ambientes confinados, áreas classificadas, umidade, condições atmosféricas;\n2.3 Acidentes de origem elétrica — causas diretas e indiretas; discussão de casos;\n2.4 Regulamentação do MTE: NRs; NR 10; Qualificação, Habilitação, Capacitação e Autorização.\n\nMódulo 3 – Área Elétrica\n3.1 Medidas de controle do risco elétrico: desenergização; aterramento funcional (TN/TT/IT); aterramento de proteção temporário; equipotencialização; seccionamento automático; dispositivo a corrente de fuga; extra baixa tensão; barreiras e invólucros; bloqueios e impedimentos; obstáculos e anteparos; isolamento das partes vivas; isolação dupla ou reforçada; colocação fora de alcance; separação elétrica;\n3.2 Normas técnicas ABNT: NBR 5410, NBR 14039 e outras;\n3.3 Rotinas de trabalho: instalações desenergizadas; liberação para serviços; sinalização; inspeções;\n3.4 Documentação de instalações elétricas;\n3.5 Responsabilidades.\n\nMódulo 4 – Proteção e combate a incêndios (noções, medidas preventivas, métodos de extinção e prática).\n\nMódulo 5 – Primeiros socorros (lesões, priorização, respiração artificial, massagem cardíaca, remoção/transporte e práticas).',
+      fotos: FOTOS_NR10,
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas, conforme dimensionamento das Normas Regulamentadoras e Ordem de Serviço específica da função exercida.'
+    },
+    {
+      id: 'nr10-sep',
+      titulo: 'Treinamento NR-10 - SEP',
+      intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento teórico e prático de NR 10 – SEP, 40 Horas, capacitando o colaborador para exercer o trabalho com segurança no Sistema Elétrico de Potência, seguindo a normativa vigente de número 10.',
+      assuntos: 'Módulo 1 – Segurança no Trabalho\n1.1 Aspectos comportamentais;\n1.2 Técnicas de análise de riscos no SEP;\n1.3 Sistema de proteção coletiva;\n1.4 Equipamentos de proteção individual;\n1.5 Posturas e vestimentas de trabalho;\n1.6 Acidentes típicos: análise, discussão e medidas de proteção.\nTemas: condições de trabalho; padrão de operação; níveis de tensão; peculiaridades da atividade; condição especial; hierarquia no aperfeiçoamento técnico.\n\nMódulo 2 – Área Elétrica\n2.1 Organização do Sistema Elétrico de Potência — SEP;\n2.2 Organização do trabalho: programação e planejamento; trabalho em equipe; prontuário e cadastro; métodos de trabalho; comunicação;\n2.3 Condições impeditivas para serviços;\n2.4 Riscos típicos no SEP e prevenção: proximidade e contato com partes energizadas; indução; descargas atmosféricas; estática; campos elétricos e magnéticos; comunicação e identificação; trabalhos em altura, máquinas e equipamentos especiais.\n\nMódulo 3 – Técnicas de trabalho sob tensão\nEm linha viva; ao potencial; em áreas internas; trabalho a distância; trabalhos noturnos; ambientes subterrâneos;\nEquipamentos e ferramentas (escolha, uso, conservação, verificação e ensaios).\n\nMódulo 4 – Segurança com veículos e transporte; sinalização e isolamento; liberação de instalação; responsabilidades.\n\nMódulo 5 – Área da Saúde: remoção, atendimento, transporte de acidentados e práticas.',
+      fotos: FOTOS_NR10,
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas, conforme dimensionamento das Normas Regulamentadoras e Ordem de Serviço específica da função exercida.'
+    },
+    {
+      id: 'nr10-rec-basica',
+      titulo: 'Reciclagem NR-10 Básica',
+      intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento de reciclagem de NR 10 – Básica, capacitando novamente o colaborador para exercer o trabalho com segurança, seguindo a normativa vigente de número 10.',
+      assuntos: 'Reciclagem dos módulos da NR 10 Básica:\n• Instrução à segurança com eletricidade;\n• Riscos em instalações e serviços com eletricidade (choque, arco, campos eletromagnéticos);\n• EPI e EPC;\n• Técnicas de análise de risco e riscos adicionais;\n• Acidentes de origem elétrica;\n• Qualificação, habilitação, capacitação e autorização;\n• Medidas de controle do risco elétrico (desenergização, aterramento, bloqueios, barreiras, extra baixa tensão etc.);\n• NBR 5410 / NBR 14039;\n• Rotinas de trabalho, documentação e responsabilidades;\n• Combate a incêndios e primeiros socorros.',
+      fotos: FOTOS_NR10,
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas de reciclagem, conforme dimensionamento das Normas Regulamentadoras e Ordem de Serviço específica da função exercida.'
+    },
+    {
+      id: 'nr10-rec-sep',
+      titulo: 'Reciclagem NR-10 SEP',
+      intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento de reciclagem de NR 10 – SEP, capacitando novamente o colaborador para o trabalho seguro no Sistema Elétrico de Potência.',
+      assuntos: 'Reciclagem dos módulos da NR 10 SEP:\n• Aspectos comportamentais e análise de riscos no SEP;\n• Proteção coletiva e individual; vestimentas;\n• Acidentes típicos no SEP;\n• Organização do SEP e do trabalho;\n• Condições impeditivas;\n• Riscos típicos: indução, descargas, campos, proximidade de partes energizadas, altura;\n• Técnicas de trabalho sob tensão (linha viva, potencial, distância, noturno, subterrâneo);\n• Ferramentas e ensaios;\n• Sinalização, isolamento, liberação e responsabilidades;\n• Primeiros socorros e transporte de acidentados.',
+      fotos: FOTOS_NR10,
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas de reciclagem SEP, conforme dimensionamento das Normas Regulamentadoras e Ordem de Serviço específica da função exercida.'
+    },
+    {
+      id: 'nr11-guindaste',
+      titulo: 'Treinamento NR-11 - Guindaste',
+      intro: introPadrao('Operação de Guindaste', 'NR-11 e NR-12'),
+      assuntos: 'Módulo 1 – NR 11 – Operação\nAcessórios; manutenção preventiva; alavanca de comando; movimentação das lanças; normas de segurança; características construtivas; prevenção e combate a incêndio; causas de acidentes; primeiros socorros; centro de gravidade; procedimento; sinalização; check-list; procedimentos de segurança; classificação; responsabilidades civil e criminal; EPIs; legislação NR 11, 12, 05, 06 e 18.\n\nMódulo 2 – NR 11 – Operação\nComando de equipamento; riscos ambientais; comunicação; segurança na operação; sistemas de elevação; equilíbrio; gráfico de carga; estabilizar/estabilidade; freio; giro; lança ou braço móvel; posição de acesso e de transporte; momento de carga útil; alcance máximo vertical e horizontal; ângulo de elevação da lança; capacidade de carga máxima; pressão de trabalho; abertura de patolas; plataforma de operação; avaliação teórica e prática.\n\nMódulo NR 12 – Operação de segurança\nRiscos e proteções; funcionamento das proteções; remoção de proteções; o que fazer se a proteção for danificada; princípios de segurança; riscos mecânicos e elétricos; método de trabalho seguro; PT; bloqueio para inspeção/manutenção.\nCapacitação de operadores de máquinas automotrizes: legislação de trânsito e SST; acidentes e doenças; EPC e EPI; operação segura; inspeção e manutenção; sinalização; emergência; primeiros socorros.\nA etapa prática deve ser supervisionada e documentada, podendo ser realizada na própria máquina.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação da NR 11 e 12 que estabelece requisitos mínimos para prevenção de acidentes e doenças do trabalho.',
+        'Apresentação das regras internas quanto aos acessos no pátio e canteiros com máquinas e equipamentos e limites de velocidade.',
+        'Apresentação do manual do equipamento e aspectos legais na operação de caminhão guindaste.',
+        'Apresentação da documentação: APR, riscos da frente de trabalho, checklist e forma de preenchimento.',
+        'Impactos à saúde, doenças ocupacionais e orientação básica de primeiros socorros.',
+        'Acionamento de socorro especializado, avaliação da cena e da vítima, controle de sangramento etc.',
+        'Operador proficiente apresentando o equipamento e componentes: abertura e montagem da lança; amarração; ângulo da lança; área de movimentação e de operação.',
+        'Dispositivos de segurança obrigatórios; movimentos instáveis e sobrecarga; planejamento e análise do plano de rigging; posicionamento e patolamento.',
+        'Técnicas seguras de içamento, movimentação e deposição de cargas.',
+        'Técnicas de patolamento e estabilidade do veículo durante elevação de cargas.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e seus subitens 12.16.1, 12.16.2 e 12.16.3.'
+    },
+    {
+      id: 'nr11-munck',
+      titulo: 'Treinamento NR-11 - Caminhão Guindauto (munck)',
+      intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento teórico e prático do trabalho com Operação de Munck / Guindauto, onde o Técnico de Segurança e/ou o Operador Proficiente capacitam o colaborador para exercer a função com segurança, seguindo as normativas vigentes de números 11 e 12.',
+      assuntos: 'Operação de segurança — capacitação teórica e prática contendo no mínimo: riscos associados e proteções; funcionamento das proteções; quando e por quem a proteção pode ser removida; o que fazer se a proteção for danificada; princípios de segurança; riscos mecânicos e elétricos; método de trabalho seguro; PT; bloqueio durante inspeção, limpeza, lubrificação e manutenção.\n\nCapacitação de operadores de máquinas automotrizes: legislação de trânsito e SST; acidentes e doenças; EPC e EPI; operação segura; inspeção, regulagem e manutenção; sinalização; emergência; primeiros socorros. A etapa prática deve ser supervisionada e documentada.\n\nMódulo 1 – Operação: acessórios; manutenção preventiva; alavanca de comando; movimentação das lanças; normas de segurança; características construtivas; prevenção e combate a incêndio; causas de acidentes; primeiros socorros; centro de gravidade; procedimento; sinalização; check-list; classificação; responsabilidades civil e criminal; EPIs; legislação NR 11, 12, 05, 06 e 18.\n\nMódulo 2 – Operação: comando; riscos ambientais; comunicação; segurança na operação; conceito de acidente; sistema de apoio; cuidados diários, semanais, mensais e semestrais; sistemas de elevação; diagnóstico de habilidades; sistemas hidráulicos; equilíbrio; gráfico de carga; avaliação teórica e prática.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação da NR 11 e 12 — requisitos mínimos para prevenção de acidentes e doenças do trabalho.',
+        'Regras internas de acesso no pátio e canteiros com máquinas e limites de velocidade.',
+        'Manual do equipamento e aspectos legais na operação de caminhão Munck.',
+        'Documentação: APR, riscos da frente, checklist e forma de preenchimento.',
+        'Impactos à saúde, doenças ocupacionais e primeiros socorros.',
+        'Acionamento de socorro especializado, avaliação da cena e da vítima, controle de sangramento.',
+        'Operador proficiente apresentando o equipamento: lanças, cilindros, válvulas, comando hidráulico e estabilizadores.',
+        'Dispositivos de segurança obrigatórios: fim de curso, limitador de carga, botoeiras e parada de emergência.',
+        'Técnicas seguras de içamento, movimentação e deposição de cargas.',
+        'Técnicas de patolamento e estabilidade do veículo.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e seus subitens 12.16.1, 12.16.2 e 12.16.3.'
+    },
+    {
+      id: 'nr11-guincho',
+      titulo: 'Treinamento NR-11 - Guincho Hidráulico',
+      intro: introPadrao('Operação de Guincho Hidráulico', 'NR-11 e NR-12'),
+      assuntos: 'Capacitação teórica e prática para operação segura de guincho hidráulico.\nRiscos associados e proteções; funcionamento e remoção de proteções; PT e bloqueio; legislação NR 11 e 12; responsabilidades civil e criminal.\nAcessórios de içamento; manutenção preventiva; comando do equipamento; movimentação; centro de gravidade; gráfico de carga; estabilidade e patolamento; sinalização; check-list; EPIs e EPCs; primeiros socorros.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação da NR 11 e 12 aplicáveis à operação de guincho hidráulico.',
+        'Regras internas de acesso, pátio, canteiro e limites de velocidade.',
+        'Manual do equipamento e aspectos legais da operação.',
+        'APR, checklist e documentação de liberação.',
+        'Doenças ocupacionais e primeiros socorros.',
+        'Acionamento de socorro e avaliação da vítima.',
+        'Apresentação do equipamento, componentes e comando hidráulico.',
+        'Dispositivos de segurança, limitadores e parada de emergência.',
+        'Técnicas seguras de içamento e deposição.',
+        'Patolamento, estabilidade e área de operação.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e subitens.'
+    },
+    {
+      id: 'nr11-betoneira',
+      titulo: 'Treinamento NR-11 - Caminhão Betoneira',
+      intro: introPadrao('Operação de Caminhão Betoneira', 'NR-11'),
+      assuntos: 'Módulo 1 – Operação\nIdentificação do caminhão betoneira; técnicas de operação; capacidade de carga; tipos de cargas; carregamento e descarregamento; limpeza da betoneira; operação da bomba de lançamento; segurança na operação; direção defensiva; conceitos de estabilidade; riscos de acidentes e medidas previstas; EPIs; sintomas de intoxicação; primeiros socorros; plano de trabalho; área de perigo; NRs; responsabilidades civil e criminal; treinamento prático.\n\nMódulo 2 – Operação\nInspeção ao redor da máquina; partida do motor; rotação; estacionamento e parada; seleção de marchas e direção; movimentações em estacionamento.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação da NR 11 e direção defensiva — requisitos mínimos de prevenção.',
+        'Regras internas de acesso no pátio e canteiros e limites de velocidade.',
+        'Manual do equipamento e aspectos legais da operação.',
+        'APR, riscos da frente e checklist.',
+        'Impactos à saúde, doenças ocupacionais e primeiros socorros.',
+        'Acionamento de socorro especializado e avaliação da vítima.',
+        'Apresentação do maquinário: tambor, tanque, bica de descarga e componentes.',
+        'Dispositivos de segurança obrigatórios (fim de curso, botoeiras, parada de emergência).',
+        'Uso necessário de EPIs e EPCs.',
+        'Higienização após o uso, evitando desgastes, falhas e acidentes.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e subitens.'
+    },
+    {
+      id: 'nr11-empilhadeira',
+      titulo: 'Treinamento NR-11 - Empilhadeira',
+      intro: introPadrao('Operação de Empilhadeira', 'NR-11 e NR-12'),
+      assuntos: 'Identificação do equipamento; capacidade de carga e centro de gravidade; estabilidade e tombamento; circulação em pátio e canteiro; carga e descarga; empilhamento; inspeção diária e check-list; direção defensiva aplicada; sinalização; EPIs e EPCs; PT; bloqueio para manutenção; responsabilidades; primeiros socorros.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação da NR 11 aplicável à empilhadeira.',
+        'Regras de circulação em pátio e canteiro.',
+        'Manual, capacidade de carga e centro de gravidade.',
+        'APR e checklist pré-uso.',
+        'Doenças ocupacionais e primeiros socorros.',
+        'Socorro especializado e avaliação da vítima.',
+        'Apresentação prática do equipamento e comandos.',
+        'Dispositivos de segurança, cinto e estrutura de proteção.',
+        'Técnicas de carga, descarga e empilhamento.',
+        'Uso de EPI/EPC e área de perigo.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e subitens.'
+    },
+    {
+      id: 'nr11-manipuladora',
+      titulo: 'Treinamento NR-11 - Manipuladora Telescópica',
+      intro: introPadrao('Operação de Manipuladora Telescópica', 'NR-11 e NR-12'),
+      assuntos: 'Características construtivas da manipuladora telescópica; gráfico de carga; alcance e estabilidade; patolamento quando aplicável; movimentação de cargas; trabalho com implementos; inspeção e manutenção; sinalização; área de perigo; EPIs e EPCs; PT e bloqueio; primeiros socorros.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação das NRs 11 e 12 aplicáveis à manipuladora telescópica.',
+        'Regras de acesso e circulação no canteiro.',
+        'Manual do equipamento e gráfico de carga.',
+        'APR, checklist e documentação.',
+        'Saúde ocupacional e primeiros socorros.',
+        'Socorro especializado.',
+        'Apresentação prática do equipamento e implementos.',
+        'Dispositivos de segurança e limitadores.',
+        'Técnicas de movimentação e estabilidade.',
+        'EPI/EPC e área de operação.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e subitens.'
+    },
+    {
+      id: 'nr11-motoniveladora',
+      titulo: 'Treinamento NR-11 - Motoniveladora',
+      intro: introPadrao('Operação de Motoniveladora', 'NR-11 e NR-12'),
+      assuntos: 'Identificação e características da motoniveladora; inspeção ao redor; partida e parada; operação em encosta; área de perigo; sinalização; check-list; direção e estabilidade; manutenção segura; EPIs e EPCs; responsabilidades; primeiros socorros.\n\n2.1 Conteúdo programático mínimo:\n' + NR11_PROG,
+      fotos: fotos([
+        'Apresentação das NRs aplicáveis à motoniveladora.',
+        'Regras internas de acesso e limites de velocidade.',
+        'Manual e aspectos legais da operação.',
+        'APR e checklist.',
+        'Doenças ocupacionais e primeiros socorros.',
+        'Socorro especializado.',
+        'Apresentação prática do equipamento.',
+        'Dispositivos de segurança e ROPS.',
+        'Operação em diferentes terrenos.',
+        'EPI/EPC e área de perigo.'
+      ]),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e subitens.'
+    }
+  ];
+
+  /* NR-12 e demais — empilhados no mesmo array */
+  var NR12_BASE_FOTOS = function (equip) {
+    return fotos([
+      'Apresentação da Norma Regulamentadora 12 que estabelece requisitos mínimos para prevenção de acidentes e doenças do trabalho.',
+      'Orientação quanto aos mecanismos de segurança, botoeiras de emergência e EPIs adequados à função — ' + equip + '.',
+      'Identificação dos riscos associados à atividade e importância da verificação das condições de uso e proteções.',
+      'Apresentação da documentação: APR, checklist, permissão de trabalho e forma de preenchimento.',
+      'Impactos à saúde, doenças ocupacionais e orientação básica de primeiros socorros.',
+      'Acionamento de socorro especializado, avaliação da cena e da vítima, controle de sangramento.',
+      'Apresentação prática do equipamento com auxílio do operador proficiente.',
+      'Dispositivos de segurança obrigatórios e zona perigosa do equipamento.',
+      'Método de trabalho seguro, PT e sistema de bloqueio para inspeção/manutenção.',
+      'Uso necessário de EPIs e EPCs, reduzindo a exposição aos riscos e às doenças ocupacionais.'
+    ]);
+  };
+
+  function addNR12(id, titulo, nome, extraAssuntos, extraFotos) {
+    MODELOS.push({
+      id: id,
+      titulo: titulo,
+      intro: introPadrao('Operação de ' + nome, 'NR-12'),
+      assuntos: (extraAssuntos ? extraAssuntos + '\n\n' : '') +
+        'Capacitação para operação segura (teórica e prática):\na) Riscos associados e proteções específicas;\nb) Funcionamento das proteções e por que devem ser usadas;\nc) Quando e por quem a proteção pode ser removida;\nd) O que fazer se a proteção for danificada;\ne) Princípios de segurança na utilização;\nf) Segurança para riscos mecânicos, elétricos e outros;\ng) Método de trabalho seguro;\nh) Permissão de Trabalho;\ni) Sistema de bloqueio durante inspeção, limpeza, lubrificação e manutenção.\n\n2.1 Conteúdo programático mínimo:\n' + NR12_PROG,
+      fotos: extraFotos || NR12_BASE_FOTOS(nome),
+      conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas conforme o item 12.16 e seus subitens 12.16.1, 12.16.2 e 12.16.3.'
+    });
+  }
+
+  addNR12('nr12-serra', 'Treinamento NR-12 - Serra Circular', 'Serra Circular',
+    'Segurança específica: proteções da serra; empurradores; zona de corte; riscos de projeção e corte; manutenção da lâmina; bloqueio para troca de disco.');
+  addNR12('nr12-bobcat', 'Treinamento NR-12 - BOB Cat', 'Mini carregadeira (Bobcat)',
+    'Inspeção ao redor; ROPS/FOPS; operação em encosta; implementos; área de perigo; partida e parada; sinalização.');
+  addNR12('nr12-calandra', 'Treinamento NR-12 - Calandra', 'Calandra — Dobra de Vergalhões',
+    'Segurança — legislação NR 12: manual de instruções; especificações técnicas; componentes e cilindros; inspeção; chave de acionamento, para e partida; medidas na zona perigosa; botão de parada e emergência; dispositivo de retrocesso de emergência; limpeza; EPIs e EPCs; emergência.\nReferências: NR 12, NR 06, NR 18, NBR 11755, ABNT NBR NM-ISO 13852:2003.',
+    fotos([
+      'Apresentação da NR 12 — requisitos mínimos de prevenção.',
+      'Mecanismos de segurança, botoeiras de emergência e EPIs adequados.',
+      'Impactos à saúde, doenças ocupacionais e primeiros socorros.',
+      'Acionamento de socorro especializado e avaliação da vítima.',
+      'Identificação dos riscos e importância de checklist, DDS, APR.',
+      'Apresentação prática do equipamento com operador proficiente.'
+    ]));
+  addNR12('nr12-esmerilhadeira', 'Treinamento NR-12 - Esmerilhadeira', 'Esmerilhadeira',
+    'Tipos de esmerilhadeira; disco adequado; proteções; riscos de projeção, corte e partículas; inspeção do disco; postura; EPIs (facial, auditivo, respiratório).');
+  addNR12('nr12-manip-tel', 'Treinamento NR-12 - Manipuladora Telescópica', 'Manipuladora Telescópica',
+    'Gráfico de carga; estabilidade; implementos; área de operação; inspeção e manutenção.');
+  addNR12('nr12-rotativas', 'Treinamento NR-12 - Máquinas Rotativas', 'Máquinas Rotativas',
+    'Riscos de aprisionamento e enrolamento; proteções fixas e móveis; intertravamentos; bloqueio para manutenção; zona perigosa.');
+  addNR12('nr12-martelete', 'Treinamento NR-12 - Martelete', 'Martelete',
+    'Módulo 2: importância do manual; perfil do operador; martelete pneumático e elétrico; APR (ruído, vibração e ergonomia); cuidados com o equipamento (capacidade, lubrificação, limpeza e aquecimento); prevenção de incêndios; percepção de risco; habituação ao risco; ergonomia; avaliação teórica e prática.',
+    fotos([
+      'Apresentação da NR 12.',
+      'Identificação dos riscos, condições de uso e proteções do equipamento e do operador.',
+      'Diferença entre martelete elétrico e pneumático e postura adequada para reduzir lesões.',
+      'Documentação: APR, checklist e PT.',
+      'Doenças ocupacionais e primeiros socorros.',
+      'Socorro especializado, avaliação da cena e da vítima, controle de sangramento e vias aéreas.'
+    ]));
+  addNR12('nr12-motoniveladora', 'Treinamento NR-12 - Motoniveladora', 'Motoniveladora',
+    'Instruções de operação e check-list: antes da operação; encosta; ROPS; sinais de mão; cintos; reboque; transporte em carreta.');
+  addNR12('nr12-motosserra', 'Treinamento NR-12 - Operação de Motosserra', 'Motosserra',
+    'Legislação: transporte da motosserra; procedimento para abastecer; ligar e desligar.\nEPIs: capacete, proteção visual, auditiva e respiratória; proteção de mãos, pés, tronco e membros.\nItens de segurança: freio da corrente; sistema antivibratório; pino pega-corrente; trava do acelerador; manutenção preventiva e diária; técnica de corte; derrubada direcionada; caminho de fuga.\nPrática: NR-12 Anexo V e NR-17 Ergonomia; conscientização ambiental.',
+    fotos([
+      'Apresentação da NR 12.',
+      'Mecanismos de segurança, emergências e EPIs adequados à função.',
+      'Cuidados: contato com a lâmina em movimento; kickback; quedas em terreno irregular; ruído e vibração.',
+      'APR, checklist e PT.',
+      'Doenças ocupacionais e primeiros socorros.',
+      'Socorro especializado e avaliação da vítima.',
+      'Riscos associados, inspeção, manutenção básica e técnicas corretas de manuseio e corte.',
+      'Transporte, abastecimento e kit de mitigação (bacia de contenção).',
+      'Riscos adicionais, ambiente e raio de ação da máquina.',
+      'EPIs, EPCs e distância de segurança entre operadores quando houver trabalho em conjunto.'
+    ]));
+  addNR12('nr12-perfuratriz', 'Treinamento NR-12 - Operação de Perfuratriz', 'Perfuratriz',
+    'Regras de segurança; antes da operação; operação; estacionamento; prevenção de queimaduras, incêndio ou explosão; ROPS; decalques; sinais de mão; cintos; assento; operação em encosta; reboque; altas temperaturas; plano de trabalho; área de perigo; cuidados periódicos.\nTipos: hélice contínua (CFA), rotativa e percussiva. NR 11, 12, 18, 06 e 17.',
+    fotos([
+      'Apresentação das NR 11 e 12.',
+      'Regras internas de acesso e limites de velocidade.',
+      'Manual e aspectos legais da operação de perfuratriz.',
+      'APR, riscos da frente e checklist.',
+      'Doenças ocupacionais e primeiros socorros.',
+      'Socorro especializado.',
+      'Operador proficiente: inspeções ao redor, nível do solo e cabine.',
+      'Tipos de perfuratriz (CFA, rotativa e percussiva) e dispositivos de segurança.',
+      'Operação em encostas, declives e proximidade de valas.',
+      'EPIs e EPCs.'
+    ]));
+  addNR12('nr12-policorte', 'Treinamento NR-12 - Policorte', 'Policorte',
+    'Proteções da máquina; disco adequado; zona de corte; projeções; fixação da peça; bloqueio para troca de disco.');
+  addNR12('nr12-prensa', 'Treinamento NR-12 - Prensa Hidráulica', 'Prensa Hidráulica',
+    'Zona de prensagem; comandos bimanuais; cortinas e grades; intertravamento; pressão de trabalho; bloqueio hidráulico para manutenção.');
+  addNR12('nr12-rocadeira', 'Treinamento NR-12 - Roçadeira', 'Roçadeira',
+    'Tipos de roçadeira; proteções; disco/faca adequados; área de arremesso; EPIs; abastecimento; inspeção prévia.');
+  addNR12('nr12-rolo', 'Treinamento NR-12 - Rolo Compactador e Compactador Manual', 'Rolo Compactador e Compactador Manual',
+    'Estabilidade; operação em encosta; vibração e ergonomia; área de perigo; inspeção; sinalização; compactador manual — postura e EPI.');
+  addNR12('nr12-trator', 'Treinamento NR-12 - Trator', 'Trator',
+    'Módulo 2 — instruções de operação: segurança; direção defensiva; estabilidade; legislação de trânsito e SST; check-list (inspeção ao redor, partida, ROPS, sinais de mão, cintos, encosta, reboque, transporte em carreta, plano de trabalho, área de perigo e prática).\nClassificação: 4x2, 4x2 TDA e 4x4. Barra de tração, TDP e sistema hidráulico.',
+    fotos([
+      'Apresentação da NR 12.',
+      'Regras internas de acesso e limites de velocidade.',
+      'Manual e aspectos legais da operação de trator.',
+      'APR e checklist.',
+      'Doenças ocupacionais e primeiros socorros.',
+      'Socorro especializado.',
+      'Classificação quanto à tração: 4x2, 4x2 TDA e 4x4.',
+      'Componentes: barra de tração, TDP, sistema hidráulico.',
+      'Manutenção preventiva x corretiva.',
+      'EPIs e EPCs.'
+    ]));
+  addNR12('nr12-retro', 'Treinamento NR-12 - Retroescavadeira', 'Retroescavadeira',
+    'Módulo 2 — check-list: regras de segurança; antes da operação; operação; estacionamento; queimaduras; incêndio/explosão; ROPS; decalques; sinais de mão; cintos; assento; encosta; reboque; transporte em carreta; altas temperaturas; plano de trabalho; área de perigo; cuidados periódicos; acidentes típicos; responsabilidades; prática (inspeção, partida, marchas, operação da carregadeira, sapatas do estabilizador).',
+    fotos([
+      'Apresentação da NR 12.',
+      'Regras internas de acesso e limites de velocidade.',
+      'Manual e aspectos legais da operação de retroescavadeira.',
+      'APR e checklist.',
+      'Doenças ocupacionais e primeiros socorros.',
+      'Socorro especializado.',
+      'Funções específicas da máquina, trabalho em equipe e estabilidade do solo.',
+      'Impactos ambientais em limpeza, lubrificação e manutenção em áreas não permitidas.',
+      'Apresentação do maquinário, terrenos e condições climáticas.',
+      'EPIs e EPCs.'
+    ]));
+  addNR12('nr12-pa', 'Treinamento NR-12 - Pá Carregadeira', 'Pá Carregadeira',
+    'Inspeção ao redor; ROPS/FOPS; operação da caçamba; elevação de cargas; encosta; área de perigo; sinalização; check-list.');
+  addNR12('nr12-guindaste', 'Treinamento NR-12 - Guindaste', 'Guindaste',
+    'Alinhado à capacitação NR 12 para máquinas de elevação: proteções, gráfico de carga, patolamento, plano de rigging, área de movimentação.');
+  addNR12('nr12-munck', 'Treinamento NR-12 - Caminhão Guindauto (Munck)', 'Caminhão Guindauto (Munck)',
+    'Capacitação NR 12 aplicada ao guindauto: proteções, limitadores, patolamento, estabilidade e operação segura.');
+  addNR12('nr12-puller', 'Treinamento NR-12 - Puller e Freio', 'Puller e Freio',
+    'Operação segura de puller e freio em lançamento de cabos; zona de perigo; comunicação com a frente; proteções; bloqueio; EPIs; PT.');
+  addNR12('nr12-escavadeira', 'Treinamento NR-12 - Escavadeira Hidráulica', 'Escavadeira Hidráulica',
+    'Inspeção ao redor; operação da lança e caçamba; giro; estabilidade; encosta e valas; área de perigo; implementos; check-list.');
+
+  MODELOS.push({
+    id: 'nr33',
+    titulo: 'Treinamento NR-33 - Espaço confinado',
+    intro: 'Este relatório tem como objetivo apresentar as evidências da realização do treinamento teórico e prático de NR-33 — Espaço Confinado, capacitando o colaborador (vigia e/ou trabalhador autorizado) para reconhecer, avaliar e controlar os riscos, seguindo a normativa vigente de número 33 e a NR-01.',
+    assuntos: 'Definição e identificação de espaço confinado;\nRiscos atmosféricos (oxigênio, gases tóxicos e inflamáveis) e riscos não atmosféricos;\nPermissão de Entrada e Trabalho (PET);\nFunções e responsabilidades: trabalhador autorizado, vigia e supervisor de entrada;\nMedição e monitoramento contínuo da atmosfera;\nVentilação;\nEPIs e EPCs específicos, incluindo respiração assistida quando aplicável;\nBloqueio, etiquetagem e isolamento de energias;\nCondições impeditivas;\nPlano de emergência e resgate em espaço confinado;\nPrimeiros socorros.',
+    fotos: fotos([
+      'Apresentação da NR-33 e identificação do que é espaço confinado.',
+      'Riscos atmosféricos e uso de detectores/multigases.',
+      'PET — Permissão de Entrada e Trabalho e preenchimento da documentação.',
+      'Atribuições do vigia, do autorizado e do supervisor de entrada.',
+      'Isolamento de energias, bloqueio e etiquetagem.',
+      'Ventilação e controle da atmosfera.',
+      'EPIs/EPCs e equipamentos de resgate.',
+      'Simulado de emergência e comunicação.',
+      'Primeiros socorros aplicáveis.',
+      'Encerramento da PET e lições do exercício prático.'
+    ]),
+    conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas, conforme a NR-33 e a Ordem de Serviço específica da função exercida.'
+  });
+
+  MODELOS.push({
+    id: 'nr35',
+    titulo: 'Treinamento NR-35 - Trabalho e Resgate em Altura',
+    intro: 'O presente relatório tem como finalidade apresentar as evidências da realização do treinamento teórico e prático de Trabalho em Altura e Resgate, ministrado em conformidade com a Norma Regulamentadora nº 35 (NR-35), visando à capacitação dos colaboradores para a execução de atividades em altura de forma segura, mediante medidas de prevenção, procedimentos operacionais e requisitos previstos na legislação vigente.',
+    assuntos: '2.1 Conteúdo programático do treinamento inicial (NR-35):\n\nSegurança no Trabalho\n• Normas e regulamentos aplicáveis ao trabalho em altura;\n• Análise de risco e condições impeditivas;\n• Identificação dos riscos potenciais e medidas de prevenção e controle;\n• Sistemas, equipamentos e procedimentos de proteção coletiva;\n• EPIs para trabalho em altura: seleção, inspeção, conservação, limitações e uso correto;\n• Principais acidentes típicos em altura e prevenção.\n\nÁrea da Saúde\n• Técnicas de primeiros socorros;\n• Remoção de vítimas;\n• Atendimento inicial ao acidentado;\n• Transporte seguro de vítimas;\n• Atividades práticas.\n\nConduta em Emergências\n• Procedimentos de salvamento;\n• Condutas adequadas durante emergências;\n• Noções básicas de técnicas de resgate em altura até a chegada do suporte especializado.',
+    fotos: FOTOS_NR35,
+    conclusao: 'De acordo com o relatório, o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas do treinamento com êxito, contemplando as atividades teóricas e práticas, conforme o item 35.4.2 da NR-35, que considera trabalhador capacitado para o trabalho em altura aquele submetido e aprovado no processo de capacitação (treinamento inicial, periódico e eventual), observando o disposto na NR-01.'
+  });
+
+  MODELOS.push({
+    id: 'dir-defensiva',
+    titulo: 'Treinamento - Direção Defensiva e Positiva',
+    intro: 'O presente relatório tem como finalidade apresentar as evidências da realização do treinamento teórico de Direção Defensiva e Positiva para condução de veículos automotores, objetivando treinar e capacitar o(s) colaborador(es) para exercer o trabalho com segurança, seguindo as leis de trânsito e as normas de Segurança do Trabalho.',
+    assuntos: 'Segurança no Trabalho\nConceito de Direção Preventiva, Defensiva e Positiva; principais causas de acidentes; comportamento seguro e comportamento preocupante; acessórios de segurança e seu funcionamento; distância de segurança x espaço de frenagem; dinâmica de transferência de peso x estabilidade do veículo; tipos de causas (velocidade, pista, ambiente, veículo); uso de TV/DVD, fones e telefone celular; lista de inspeção de pré-uso; previsibilidade de perigo e reação antecipada a erros de outros motoristas.\n\nProcedimentos de saída e chegada\nUso de álcool, medicamentos e drogas x acidentes; conduta em emergência, noções de resgate e primeiros socorros; identificação de perigos e controle de riscos no deslocamento.\n\nComo evitar acidentes\nColisões frontal, traseira e lateral; posicionamento correto no veículo e regulagem de bancos; paradas táticas nos semáforos; plano de trânsito; via preferencial; checagem inicial do veículo; controle de volante; controle de frenagem em pista seca e molhada; uso de ABS em terrenos regulares e irregulares.',
+    fotos: fotos([
+      'Conceitos de Direção Defensiva e Positiva e a responsabilidade legal com terceiros, colaboradores e população.',
+      'Principais regras de Direção Defensiva, respeito às leis de trânsito e vistoria das peças atracadas quando se aplicar.',
+      'Vistoria das peças, segurança nas saídas e chegadas, procedimentos de emergência, noções de resgate e primeiros socorros.',
+      'Preenchimento de documentações de segurança: APR, checklist e PARA — Plano de Remoção de Acidentados.',
+      'Distância de segurança, espaço de frenagem e estabilidade do veículo.',
+      'Inspeção pré-uso do veículo e acessórios de segurança.',
+      'Conduta em situações de emergência no trânsito.',
+      'Orientação prática de posicionamento, regulagem de bancos e controle de volante.'
+    ]),
+    conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas, conforme dimensionamento das Normas Regulamentadoras, Código de Trânsito Brasileiro e Ordem de Serviço específica da função exercida.'
+  });
+
+  MODELOS.push({
+    id: 'cipa',
+    titulo: 'Treinamento NR-05 - CIPA+A',
+    intro: 'O presente relatório tem como finalidade apresentar as evidências da realização do treinamento teórico e prático da Comissão Interna de Prevenção de Acidentes e de Assédio — CIPA+A, objetivando treinar e capacitar o(s) colaborador(es) para exercer o trabalho com segurança, seguindo as Normas Regulamentadoras nº 01 e nº 05.',
+    assuntos: 'Módulo 1 — Segurança no Trabalho\nNoções sobre legislações trabalhistas e previdenciárias relativas à SST; organização da CIPA+A e meios para o desempenho das atribuições; calendário das reuniões mensais; reuniões extraordinárias x ordinárias; estudo do ambiente e dos riscos do processo produtivo conforme a etapa da obra; prevenção de acidentes e doenças relacionadas ao trabalho; metodologia de investigação e análise de acidentes e doenças; Comunicação de Acidentes e Incidentes de Trabalho — CAT.\n\nMódulo 2 — Segurança no Trabalho\nSESMT; Programa de Gerenciamento de Riscos — PGR; LTCAT; EPC e EPI; Análises Preliminares de Riscos — APR; elaboração de Mapa de Riscos; modelo de checklist para instalações, equipamentos e veículos; Semana Interna de Prevenção de Acidentes do Trabalho — SIPAT.\n\nMódulo 3 — Área da Saúde\nPrincípios gerais de higiene do trabalho e medidas de controle dos riscos; noções sobre inclusão de pessoas com deficiência e reabilitados; prevenção e combate ao assédio sexual e outras formas de violência no trabalho; Brigada de Emergência/Incêndio segundo a ABNT NBR 14276.',
+    fotos: fotos([
+      'Apresentação da NR-05, atribuições da CIPA+A, assessoria ao SESMT e representatividade dos colaboradores.',
+      'Noções de legislação trabalhista e previdenciária; prevenção e combate ao assédio sexual e outras formas de violência no trabalho.',
+      'Percepção de risco, medidas de prevenção e análise de acidentes e doenças.',
+      'Programação e realização da SIPAT e outras campanhas de SST.',
+      'Comportamento seguro, diferença entre EPI e EPC e prevenção de doenças ocupacionais.',
+      'Riscos ocupacionais: químico, físico, biológico, ergonômico e mecânico.',
+      'Tipos de extintores e classes de uso para combate a princípios de incêndio.',
+      'Evacuação de emergência, rotas de fuga e comportamento em intempéries.',
+      'Procedimentos básicos de primeiros socorros, hemorragias, fraturas, desmaios e demais ocorrências.',
+      'Imobilização e pranchamento da vítima para estabilização e remoção segura.',
+      'Atividade prática simulada de primeiros socorros sob orientação da área da saúde.',
+      'Elevação da maca para ambulância, talas de imobilização e instalação do Red Block.'
+    ]),
+    conclusao: 'De acordo com o relatório o(s) colaborador(es): [NOME E FUNÇÃO] passou/passaram por todas as etapas com êxito nas atividades teóricas e práticas, conforme dimensionamento das Normas Regulamentadoras NR-01 e NR-05 e Ordem de Serviço específica da função exercida.'
+  });
+
+  var slotCount = 0;
+  var instrutorCount = 0;
+
+  function createInstrutorRow(nome, funcao) {
+    instrutorCount += 1;
+    var row = document.createElement('div');
+    row.className = 'instrutor-row';
+    row.innerHTML =
+      '<div class="grid-2">' +
+        '<div class="field"><label class="field-label">Nome</label><input type="text" data-role="inst-nome" placeholder="Nome do instrutor" value="' + (nome || '') + '"></div>' +
+        '<div class="field"><label class="field-label">Função</label><input type="text" data-role="inst-funcao" placeholder="Ex.: Técnico de Segurança do Trabalho II" value="' + (funcao || '') + '"></div>' +
+      '</div>' +
+      '<div class="no-pdf" style="text-align:right;margin-top:6px"><button type="button" class="btn btn-danger" data-role="remove-inst">Remover</button></div>';
+    return row;
+  }
+
+  function addInstrutor(nome, funcao) {
+    $('instrutoresList').appendChild(createInstrutorRow(nome, funcao));
+  }
+
+  function createSlot(num, titulo, descricao) {
+    var el = document.createElement('div');
+    el.className = 'slot';
+    el.dataset.slot = String(num);
+    el.innerHTML =
+      '<div class="slot-num">' + (titulo || ('Foto ' + padN(num, 2))) + '</div>' +
+      '<div class="field"><label class="field-label">Descrição / legenda</label>' +
+      '<textarea data-role="comment" rows="3">' + (descricao || '') + '</textarea></div>' +
+      '<div class="photo-area">' +
+        '<div class="photo-preview-wrap" data-role="preview-wrap"><img class="photo-preview" data-role="preview" alt="Foto do treinamento"></div>' +
+        '<div class="photo-actions no-pdf">' +
+          '<button type="button" class="btn btn-secondary" data-role="pick-photo" style="flex:1;min-height:44px">📷 Foto / Galeria</button>' +
+          '<button type="button" class="btn btn-danger" data-role="remove-photo" style="display:none">Remover foto</button>' +
+        '</div>' +
+        '<input type="file" class="file-input-hidden" data-role="file" accept="image/*" capture="environment">' +
+      '</div>';
+    return el;
+  }
+
+  function addSlot(titulo, descricao) {
+    slotCount += 1;
+    var el = createSlot(slotCount, titulo, descricao);
+    $('slotsContainer').appendChild(el);
+    setTimeout(function () {
+      var ta = el.querySelector('[data-role="comment"]');
+      fitTextarea(ta);
+      syncTextFlows(el);
+    }, 0);
+    return el;
+  }
+
+  function clearSlots() {
+    $('slotsContainer').innerHTML = '';
+    slotCount = 0;
+  }
+
+  function splitModulos(assuntos) {
+    if (!assuntos) return [];
+    var parts = String(assuntos).split(/\n\s*\n/);
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].trim();
+      if (!p) continue;
+      var lines = p.split('\n');
+      var title = lines[0].replace(/^\s+|\s+$/g, '');
+      var body = lines.slice(1).join('\n').trim();
+      if (!body) { body = title; title = 'Módulo ' + (out.length + 1); }
+      out.push({ titulo: title, corpo: body });
+    }
+    return out;
+  }
+
+  function renderModulos(list) {
+    var box = $('modulosContainer');
+    box.innerHTML = '';
+    if (!list || !list.length) {
+      box.innerHTML = '<p class="hint">Selecione um modelo para carregar os módulos.</p>';
+      return;
+    }
+    for (var i = 0; i < list.length; i++) {
+      var el = document.createElement('div');
+      el.className = 'modulo';
+      el.innerHTML =
+        '<h3></h3>' +
+        '<textarea data-role="modulo-corpo" rows="5"></textarea>';
+      el.querySelector('h3').textContent = list[i].titulo;
+      el.querySelector('textarea').value = list[i].corpo || '';
+      box.appendChild(el);
+    }
+    setTimeout(function () { fitAllTextareas(box); syncTextFlows(box); }, 0);
+  }
+
+  function applyModelo(id) {
+    var m = null;
+    for (var i = 0; i < MODELOS.length; i++) if (MODELOS[i].id === id) m = MODELOS[i];
+    if (!m) {
+      $('tipoBanner').textContent = 'Nenhum modelo selecionado';
+      renderModulos([]);
+      return;
+    }
+    $('tipoBanner').textContent = m.titulo;
+    $('introducao').value = m.intro;
+    renderModulos(m.modulos && m.modulos.length ? m.modulos : splitModulos(m.assuntos));
+    $('conclusao').value = m.conclusao;
+    clearSlots();
+    for (var j = 0; j < m.fotos.length; j++) {
+      addSlot(m.fotos[j].titulo, m.fotos[j].descricao);
+    }
+    showToast('Modelo carregado: ' + m.titulo);
+    setTimeout(function () { fitAllTextareas(); syncTextFlows(); }, 30);
+  }
+
+  function readFileAsDataURL(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = function () { reject(reader.error); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setSlotPhoto(slotEl, dataUrl) {
+    var img = slotEl.querySelector('[data-role="preview"]');
+    var wrap = slotEl.querySelector('[data-role="preview-wrap"]');
+    var btnRemove = slotEl.querySelector('[data-role="remove-photo"]');
+    if (dataUrl) {
+      img.src = dataUrl;
+      wrap.classList.add('has-photo');
+      btnRemove.style.display = '';
+    } else {
+      img.removeAttribute('src');
+      wrap.classList.remove('has-photo');
+      btnRemove.style.display = 'none';
+      var fileInput = slotEl.querySelector('[data-role="file"]');
+      if (fileInput) fileInput.value = '';
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var pickBtn = t.closest('[data-role="pick-photo"]');
+    if (pickBtn) {
+      e.preventDefault();
+      var fileInput = pickBtn.closest('.slot').querySelector('[data-role="file"]');
+      if (fileInput) fileInput.click();
+      return;
+    }
+    var remPhoto = t.closest('[data-role="remove-photo"]');
+    if (remPhoto) {
+      e.preventDefault();
+      setSlotPhoto(remPhoto.closest('.slot'), null);
+      return;
+    }
+    if (t.closest('[data-role="remove-inst"]')) {
+      e.preventDefault();
+      var row = t.closest('.instrutor-row');
+      if (row) row.remove();
+      return;
+    }
+    if (t.closest('#btnPickLogo')) { e.preventDefault(); $('logoFile').click(); return; }
+    if (t.closest('#btnLogoPadrao')) {
+      e.preventDefault();
+      applyLogo(DEFAULT_LOGO, true);
+      showToast('Logo Vividense restaurada');
+      return;
+    }
+    if (t.closest('#btnRemoveLogo')) {
+      e.preventDefault();
+      applyLogo(null, true);
+      $('logoFile').value = '';
+      showToast('Logo removida neste relatório');
+      return;
+    }
+    if (t.closest('#btnCopyLink')) {
+      e.preventDefault();
+      var url = window.location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(function () { showToast('Link copiado'); }).catch(function () { window.prompt('Copie o link:', url); });
+      } else {
+        window.prompt('Copie o link:', url);
+      }
+      return;
+    }
+    if (t.closest('#btnHideInstall')) {
+      e.preventDefault();
+      var b = $('installBanner');
+      if (b) b.style.display = 'none';
+      try { localStorage.setItem('vvds_rft_hide_install', '1'); } catch (err) {}
+      return;
+    }
+    if (t.closest('#btnAplicarNumero')) { e.preventDefault(); applyNumberFromField(); return; }
+    if (t.closest('#btnProximoNumero')) { e.preventDefault(); useNextInSequence(); return; }
+    if (t.closest('#btnAddInstrutor')) { e.preventDefault(); addInstrutor('', ''); return; }
+    if (t.closest('#btnAddSlot')) { e.preventDefault(); addSlot('Foto extra', ''); showToast('Foto extra adicionada'); return; }
+    if (t.closest('#btnGerarPdf')) { e.preventDefault(); gerarPdf(); return; }
+    if (t.closest('#btnPrintFallback')) {
+      e.preventDefault();
+      syncTextFlows();
+      document.body.classList.add('pdf-mode');
+      setTimeout(function () { window.print(); setTimeout(function () { document.body.classList.remove('pdf-mode'); }, 500); }, 120);
+      return;
+    }
+    if (t.closest('#btnSharePdf')) { e.preventDefault(); sharePdfNow(); return; }
+    if (t.closest('#btnWhatsApp')) { e.preventDefault(); openWhatsAppEquipe(); return; }
+    if (t.closest('#btnEmailEquipe')) { e.preventDefault(); openEmailEquipe(); return; }
+    if (t.closest('#btnExportXlsx') || t.closest('#btnExportXlsxBar')) { e.preventDefault(); exportRegistryXlsx(); return; }
+    if (t.closest('#btnOpenPdf')) { e.preventDefault(); openPdfInSafari(); return; }
+    if (t.closest('#btnClosePdfSheet') || t.closest('#pdfReadyBackdrop')) { e.preventDefault(); closePdfReadySheet(); return; }
+  });
+
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.tagName === 'TEXTAREA') {
+      fitTextarea(e.target);
+      var flow = ensureTextFlow(e.target);
+      if (flow) flow.textContent = e.target.value || '';
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id === 'tipoTreinamento') {
+      applyModelo(t.value);
+      return;
+    }
+    if (t.id === 'logoFile') {
+      var lf = t.files && t.files[0];
+      if (!lf) return;
+      if (!lf.type || lf.type.indexOf('image/') !== 0) { showToast('Selecione uma imagem de logo'); t.value = ''; return; }
+      readFileAsDataURL(lf).then(function (url) {
+        applyLogo(url, true);
+        showToast('Logo atualizada');
+      }).catch(function () { showToast('Erro ao ler a logo'); });
+      return;
+    }
+    if (t.getAttribute('data-role') === 'file') {
+      var slot = t.closest('.slot');
+      var file = t.files && t.files[0];
+      if (!file) return;
+      if (!file.type || file.type.indexOf('image/') !== 0) {
+        showToast('Selecione uma imagem');
+        t.value = '';
+        return;
+      }
+      readFileAsDataURL(file).then(function (url) { setSlotPhoto(slot, url); }).catch(function () { showToast('Erro ao ler a foto'); });
+    }
+  });
+
+  function pdfFilename() {
+    var n = parseReportNum($('numRelatorio') && $('numRelatorio').value);
+    if (!n) n = peekNextNumber();
+    var codigo = formatReportNum(n);
+    showReportNumber(n);
+    return codigo.replace(/\s+/g, ' ').trim() + '.pdf';
+  }
+
+  function libsReady() { return !!(window.html2canvas && (window.jspdf || window.jsPDF)); }
+  function getJsPdf() {
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    if (window.jsPDF) return window.jsPDF;
+    return null;
+  }
+  function waitForLibs(timeoutMs) {
+    return new Promise(function (resolve) {
+      if (libsReady()) { resolve(true); return; }
+      var start = Date.now();
+      var timer = setInterval(function () {
+        if (libsReady()) { clearInterval(timer); resolve(true); }
+        else if (Date.now() - start > timeoutMs) { clearInterval(timer); resolve(false); }
+      }, 150);
+    });
+  }
+
+  function storePdfInMemory(blob, filename) {
+    if (window.__lastPdfUrl) { try { URL.revokeObjectURL(window.__lastPdfUrl); } catch (e) {} }
+    var file = null;
+    try { file = new File([blob], filename, { type: 'application/pdf' }); } catch (err) { file = null; }
+    var url = URL.createObjectURL(blob);
+    window.__lastPdfBlob = blob;
+    window.__lastPdfFile = file;
+    window.__lastPdfUrl = url;
+    window.__lastPdfName = filename;
+    return { blob: blob, file: file, url: url, name: filename };
+  }
+
+  function openPdfReadySheet(filename) {
+    $('pdfReadyFilename').textContent = filename || 'relatorio.pdf';
+    var sheet = $('pdfReadySheet');
+    sheet.classList.add('show');
+    sheet.setAttribute('aria-hidden', 'false');
+  }
+  function closePdfReadySheet() {
+    var sheet = $('pdfReadySheet');
+    sheet.classList.remove('show');
+    sheet.setAttribute('aria-hidden', 'true');
+  }
+  function openPdfInSafari() {
+    var url = window.__lastPdfUrl;
+    if (!url && window.__lastPdfBlob) {
+      url = URL.createObjectURL(window.__lastPdfBlob);
+      window.__lastPdfUrl = url;
+    }
+    if (!url) { showToast('PDF não disponível. Gere novamente.'); return; }
+    var a = document.createElement('a');
+    a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.style.display = 'none';
+    document.body.appendChild(a); a.click();
+    if (a.parentNode) a.parentNode.removeChild(a);
+  }
+  async function sharePdfNow() {
+    var file = window.__lastPdfFile;
+    var blob = window.__lastPdfBlob;
+    var name = window.__lastPdfName || 'relatorio.pdf';
+    var rec = collectRecord();
+    var text = mensagemEquipe(rec);
+    if (!file && blob) {
+      try { file = new File([blob], name, { type: 'application/pdf' }); window.__lastPdfFile = file; } catch (err) { file = null; }
+    }
+    try {
+      if (navigator.share && file) {
+        var payload = { files: [file], title: rec.numero || 'Relatório de Treinamento', text: text };
+        if (!navigator.canShare || navigator.canShare(payload)) { await navigator.share(payload); return; }
+        try { await navigator.share(payload); return; } catch (e2) { if (e2 && e2.name === 'AbortError') return; }
+      } else if (navigator.share) {
+        await navigator.share({ title: rec.numero || 'Relatório de Treinamento', text: text });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    openWhatsAppEquipe();
+  }
+
+  async function gerarPdf() {
+    setLoading(true, 'Gerando PDF…');
+    var ok = await waitForLibs(8000);
+    if (!ok) { setLoading(false); showToast('Biblioteca PDF indisponível. Use “Abrir para imprimir”.'); return; }
+    var JsPDF = getJsPdf();
+    if (!JsPDF) { setLoading(false); showToast('jsPDF não carregou. Use “Abrir para imprimir”.'); return; }
+    syncTextFlows();
+    document.body.classList.add('pdf-mode');
+    await new Promise(function (r) { setTimeout(r, 220); });
+    var filename = pdfFilename();
+    try {
+      var pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pageWidth = pdf.internal.pageSize.getWidth();
+      var pageHeight = pdf.internal.pageSize.getHeight();
+      var margin = 8;
+      var usableWidth = pageWidth - margin * 2;
+      var usableHeight = pageHeight - margin * 2;
+      var cursorY = margin;
+      var first = true;
+
+      var blocks = [];
+      var header = document.querySelector('#report .doc-header');
+      if (header) blocks.push(header);
+      var cards = document.querySelectorAll('#report > section.card');
+      for (var c = 0; c < cards.length; c++) {
+        var card = cards[c];
+        var mods = card.querySelectorAll('.modulo');
+        var slots = card.querySelectorAll('.slot');
+        if (mods.length) {
+          var h2 = card.querySelector('h2');
+          if (h2) blocks.push(h2);
+          for (var mi = 0; mi < mods.length; mi++) blocks.push(mods[mi]);
+        } else if (slots.length) {
+          var h2s = card.querySelector('h2');
+          if (h2s) blocks.push(h2s);
+          for (var si = 0; si < slots.length; si += 2) {
+            var wrap = document.createElement('div');
+            wrap.className = 'pdf-pair';
+            wrap.style.display = 'grid';
+            wrap.style.gridTemplateColumns = '1fr 1fr';
+            wrap.style.gap = '8px';
+            wrap.style.background = '#fff';
+            var a = slots[si];
+            var b = slots[si + 1];
+            wrap.appendChild(a.cloneNode(true));
+            if (b) wrap.appendChild(b.cloneNode(true));
+            /* capture originals in pairs via a temp wrapper around live nodes */
+            blocks.push({ pair: [a, b] });
+          }
+        } else {
+          blocks.push(card);
+        }
+      }
+
+      function captureOpts() {
+        return {
+          scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, imageTimeout: 15000,
+          onclone: function (clonedDoc) {
+            clonedDoc.body.classList.add('pdf-mode');
+            var hide = clonedDoc.body.querySelectorAll('.no-pdf');
+            for (var i = 0; i < hide.length; i++) hide[i].style.display = 'none';
+            var tas = clonedDoc.querySelectorAll('textarea');
+            for (var t = 0; t < tas.length; t++) {
+              tas[t].style.display = 'none';
+              var flow = tas[t].nextElementSibling;
+              if (flow && flow.classList.contains('text-flow')) {
+                flow.style.display = 'block';
+                flow.textContent = tas[t].value || '';
+              }
+            }
+          }
+        };
+      }
+
+      async function paintCanvas(canvas) {
+        var imgData = canvas.toDataURL('image/jpeg', 0.92);
+        var imgH = (canvas.height * usableWidth) / canvas.width;
+        if (imgH > usableHeight) {
+          /* bloco maior que a página: fatia, mas começa sempre no topo */
+          var slicePx = Math.floor(canvas.height * (usableHeight / imgH));
+          var sy = 0;
+          while (sy < canvas.height - 2) {
+            if (!first && sy === 0 && cursorY > margin + 1) {
+              pdf.addPage();
+              cursorY = margin;
+            }
+            if (sy > 0) { pdf.addPage(); cursorY = margin; }
+            var sliceH = Math.min(slicePx, canvas.height - sy);
+            var sc = document.createElement('canvas');
+            sc.width = canvas.width;
+            sc.height = sliceH;
+            sc.getContext('2d').drawImage(canvas, 0, sy, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+            var sh = (sliceH * usableWidth) / canvas.width;
+            pdf.addImage(sc.toDataURL('image/jpeg', 0.92), 'JPEG', margin, cursorY, usableWidth, sh);
+            cursorY = margin + sh;
+            first = false;
+            sy += sliceH;
+          }
+          return;
+        }
+        if (!first && cursorY + imgH > pageHeight - margin) {
+          pdf.addPage();
+          cursorY = margin;
+        }
+        pdf.addImage(imgData, 'JPEG', margin, cursorY, usableWidth, imgH);
+        cursorY += imgH + 3;
+        first = false;
+      }
+
+      for (var bi = 0; bi < blocks.length; bi++) {
+        var block = blocks[bi];
+        var canvas;
+        if (block && block.pair) {
+          var holder = document.createElement('div');
+          holder.style.display = 'grid';
+          holder.style.gridTemplateColumns = block.pair[1] ? '1fr 1fr' : '1fr';
+          holder.style.gap = '10px';
+          holder.style.background = '#ffffff';
+          holder.style.padding = '0';
+          holder.style.width = Math.min(780, (document.getElementById('report').getBoundingClientRect().width || 800)) + 'px';
+          holder.appendChild(block.pair[0].cloneNode(true));
+          if (block.pair[1]) holder.appendChild(block.pair[1].cloneNode(true));
+          document.body.appendChild(holder);
+          canvas = await window.html2canvas(holder, captureOpts());
+          if (holder.parentNode) holder.parentNode.removeChild(holder);
+        } else {
+          canvas = await window.html2canvas(block, captureOpts());
+        }
+        await paintCanvas(canvas);
+      }
+
+      function reportElWidth() {
+        var r = $('report');
+        return r ? r.getBoundingClientRect().width : 800;
+      }
+
+      var blob = pdf.output('blob');
+      document.body.classList.remove('pdf-mode');
+      setLoading(false);
+      storePdfInMemory(blob, filename);
+      openPdfReadySheet(filename);
+      var used = parseReportNum($('numRelatorio').value);
+      if (used) setSeq(used);
+      upsertRecord(collectRecord());
+      showToast('PDF pronto e lançado na planilha SST');
+    } catch (err) {
+      document.body.classList.remove('pdf-mode');
+      setLoading(false);
+      console.error(err);
+      showToast('Falha ao gerar PDF. Tente “Abrir para imprimir”.');
+    }
+  }
+
+  function init() {
+    var sel = $('tipoTreinamento');
+    for (var i = 0; i < MODELOS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = MODELOS[i].id;
+      opt.textContent = MODELOS[i].titulo;
+      sel.appendChild(opt);
+    }
+    var now = new Date();
+    $('dataHora').value = formatLocalDateTimeInput(now);
+    showReportNumber(peekNextNumber());
+    loadSavedLogo();
+    try {
+      if (localStorage.getItem('vvds_rft_hide_install') === '1') {
+        var ban = $('installBanner');
+        if (ban) ban.style.display = 'none';
+      }
+    } catch (e3) {}
+    addInstrutor('', 'Técnico de Segurança do Trabalho');
+    addInstrutor('', 'Profissional Proficiente');
+    $('numRelatorio').addEventListener('input', function () {
+      var n = parseReportNum($('numRelatorio').value);
+      $('headerNumBadge').textContent = n ? formatReportNum(n) : 'VVDS - RFT - —';
+    });
+    setTimeout(function () { fitAllTextareas(); syncTextFlows(); }, 50);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+</body>
+</html>
