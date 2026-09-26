@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Relatório de Inspeção de Rotina — Segurança do Trabalho</title>
+  <!-- PDF libs (pinned). First use needs network; after that browser cache helps offline. -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --primary: #0b5f2a;
+      --primary-dark: #084420;
+      --primary-light: #e8f5ec;
+      --ok: #0b5f2a;
+      --ok-bg: #d1fae5;
+      --nc: #b00020;
+      --nc-bg: #fee2e2;
+      --na: #6b7280;
+      --na-bg: #e5e7eb;
+      --border: #c8d0c8;
+      --bg: #f0f4f1;
+      --card: #ffffff;
+      --muted: #5a635a;
+      --radius: 12px;
+      --tap: 48px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.45;
+      color: #1a1f1a;
+      background: var(--bg);
+      padding: 12px;
+      padding-bottom: 120px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 4px;
+      color: #fff;
+      line-height: 1.3;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin: 0 0 12px;
+      color: var(--primary-dark);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 6px;
+    }
+
+    .doc-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .doc-header .subtitle {
+      font-size: 0.9rem;
+      opacity: .92;
+      margin: 0;
+    }
+
+    .badge-header {
+      display: inline-block;
+      background: rgba(255,255,255,.2);
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      margin-top: 8px;
+    }
+
+    section.card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .field { margin-bottom: 12px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label.field-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: .02em;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+      width: 100%;
+      font: inherit;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      color: #1a1f1a;
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: var(--tap);
+    }
+
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+      border-color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    @media (min-width: 520px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ---- Slots ---- */
+    .slot {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #fafcfa;
+    }
+
+    .slot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .slot-num {
+      font-weight: 700;
+      color: var(--primary-dark);
+      font-size: 1rem;
+      white-space: nowrap;
+    }
+
+    .slot-title-input {
+      flex: 1;
+      min-height: 40px !important;
+      padding: 8px 12px !important;
+      font-size: 0.95rem;
+    }
+
+    .status-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .status-btn {
+      min-height: var(--tap);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font: inherit;
+      font-weight: 600;
+      font-size: 0.82rem;
+      padding: 10px 6px;
+      cursor: pointer;
+      color: var(--muted);
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+
+    .status-btn[data-status="conforme"].active {
+      background: var(--ok-bg);
+      border-color: var(--ok);
+      color: var(--ok);
+    }
+
+    .status-btn[data-status="nao-conforme"].active {
+      background: var(--nc-bg);
+      border-color: var(--nc);
+      color: var(--nc);
+    }
+
+    .status-btn[data-status="nao-se-aplica"].active {
+      background: var(--na-bg);
+      border-color: var(--na);
+      color: var(--na);
+    }
+
+    .photo-area {
+      margin-top: 10px;
+    }
+
+    .photo-preview-wrap {
+      position: relative;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .photo-preview-wrap.has-photo { display: block; }
+
+    .photo-preview {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #eee;
+    }
+
+    .photo-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .file-input-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+
+    /* ---- Status badge for PDF ---- */
+    .status-badge-print {
+      display: none;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 6px 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .status-badge-print.conforme { background: var(--ok-bg); color: var(--ok); border: 1px solid var(--ok); }
+    .status-badge-print.nao-conforme { background: var(--nc-bg); color: var(--nc); border: 1px solid var(--nc); }
+    .status-badge-print.nao-se-aplica { background: var(--na-bg); color: var(--na); border: 1px solid var(--na); }
+
+    /* ---- Plano de ação ---- */
+    .acao-row {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .acao-row .field { margin-bottom: 10px; }
+
+    .acao-toolbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 4px;
+    }
+
+    /* ---- Resumo ---- */
+    .resumo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      text-align: center;
+    }
+
+    .resumo-item {
+      background: var(--primary-light);
+      border-radius: 10px;
+      padding: 12px 6px;
+    }
+
+    .resumo-item .num {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      line-height: 1.1;
+    }
+
+    .resumo-item .lbl {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .resumo-item.nc .num { color: var(--nc); }
+    .resumo-item.nc { background: var(--nc-bg); }
+    .resumo-item.na .num { color: var(--na); }
+    .resumo-item.na { background: var(--na-bg); }
+
+    /* ---- Buttons ---- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: var(--tap);
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:active { background: var(--primary-dark); }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--primary-dark);
+      border: 1.5px solid var(--primary);
+    }
+
+    .btn-danger {
+      background: #fff;
+      color: var(--nc);
+      border: 1.5px solid var(--nc);
+      min-height: 40px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+
+    .btn-ghost {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px dashed var(--primary);
+    }
+
+    .btn-block { width: 100%; }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .toolbar-bottom {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border);
+      padding: 10px 12px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 100;
+      box-shadow: 0 -2px 10px rgba(0,0,0,.06);
+    }
+
+    .toolbar-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .toolbar-row .btn { flex: 1; }
+
+    .hint {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+
+    .toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1f1a;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      z-index: 200;
+      max-width: 90%;
+      text-align: center;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    }
+
+    .toast.show { display: block; }
+
+    .overlay-loading {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay-loading.show {
+      display: flex;
+    }
+
+    .overlay-box {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px 32px;
+      text-align: center;
+      max-width: 280px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+
+    /* ---- PDF ready sheet (iOS share) ---- */
+    .pdf-ready-sheet {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .pdf-ready-sheet.show { display: flex; }
+    .pdf-ready-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+    }
+    .pdf-ready-panel {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      background: #fff;
+      border-radius: 16px 16px 0 0;
+      padding: 20px 18px max(18px, env(safe-area-inset-bottom));
+      box-shadow: 0 -8px 32px rgba(0,0,0,.2);
+      z-index: 1;
+    }
+    .pdf-ready-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 999px;
+      margin: 0 auto 14px;
+    }
+    .pdf-ready-title {
+      margin: 0 0 4px;
+      font-size: 1.2rem;
+      color: var(--primary-dark);
+      text-align: center;
+    }
+    .pdf-ready-filename {
+      margin: 0 0 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+      word-break: break-all;
+    }
+    .pdf-ready-tip {
+      margin: 12px 0 0;
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+      text-align: center;
+    }
+    .pdf-ready-secure {
+      display: none;
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      color: #9a3412;
+      line-height: 1.4;
+    }
+    .pdf-ready-secure.show { display: block; }
+    .pdf-ready-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pdf-ready-actions .btn-link {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      font-weight: 500;
+      min-height: 40px;
+      text-decoration: underline;
+    }
+    .toolbar-hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin: 0;
+      line-height: 1.35;
+    }
+
+    /* ---- PDF capture mode ---- */
+    body.pdf-mode .no-pdf { display: none !important; }
+    body.pdf-mode .toolbar-bottom { display: none !important; }
+    body.pdf-mode .pdf-ready-sheet { display: none !important; }
+    body.pdf-mode .status-group { display: none !important; }
+    body.pdf-mode .status-badge-print { display: block !important; }
+    body.pdf-mode .photo-actions { display: none !important; }
+    body.pdf-mode .slot.empty-omit { display: none !important; }
+    body.pdf-mode body,
+    body.pdf-mode {
+      background: #fff;
+      padding: 8px;
+      padding-bottom: 8px;
+    }
+    body.pdf-mode .slot {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    body.pdf-mode .acao-row {
+      break-inside: avoid;
+    }
+
+    @media print {
+      .no-pdf, .toolbar-bottom, .overlay-loading, .toast, .pdf-ready-sheet { display: none !important; }
+      .status-group { display: none !important; }
+      .status-badge-print { display: block !important; }
+      .photo-actions { display: none !important; }
+      .slot.empty-omit { display: none !important; }
+      body { background: #fff; padding: 0; padding-bottom: 0; }
+      section.card, .slot { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="loadingOverlay" class="overlay-loading" aria-hidden="true">
+    <div class="overlay-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <div id="loadingText">Gerando PDF…</div>
+    </div>
+  </div>
+
+  <div id="pdfReadySheet" class="pdf-ready-sheet no-pdf" aria-hidden="true" role="dialog" aria-labelledby="pdfReadyTitle">
+    <div class="pdf-ready-backdrop" id="pdfReadyBackdrop"></div>
+    <div class="pdf-ready-panel">
+      <div class="pdf-ready-handle" aria-hidden="true"></div>
+      <h2 class="pdf-ready-title" id="pdfReadyTitle">PDF pronto</h2>
+      <p class="pdf-ready-filename" id="pdfReadyFilename">—</p>
+      <div class="pdf-ready-actions">
+        <button type="button" class="btn btn-primary btn-block" id="btnSharePdf">Compartilhar</button>
+        <button type="button" class="btn btn-secondary btn-block" id="btnOpenPdf">Abrir PDF</button>
+        <button type="button" class="btn btn-link btn-block" id="btnClosePdfSheet">Fechar</button>
+      </div>
+      <p class="pdf-ready-tip">No iPhone, toque em Compartilhar. Se não aparecer, toque em Abrir PDF e use o botão de compartilhar do Safari.</p>
+      <p class="pdf-ready-secure" id="pdfReadySecureNote">Abra este arquivo pelo Safari a partir dos Arquivos, ou use Abrir PDF e compartilhe por lá.</p>
+    </div>
+  </div>
+
+  <div id="report">
+    <header class="doc-header">
+      <h1>Relatório de Inspeção de Rotina — Segurança do Trabalho</h1>
+      <p class="subtitle">SST · Checklist de campo</p>
+      <span class="badge-header" id="headerNumBadge">Nº —</span>
+    </header>
+
+    <section class="card" aria-labelledby="sec-ident">
+      <h2 id="sec-ident">Identificação</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="empresa">Empresa / Unidade</label>
+          <input type="text" id="empresa" name="empresa" autocomplete="organization" placeholder="Nome da empresa ou unidade">
+        </div>
+        <div class="field">
+          <label class="field-label" for="local">Local / Setor</label>
+          <input type="text" id="local" name="local" placeholder="Área, setor ou local inspecionado">
+        </div>
+        <div class="field">
+          <label class="field-label" for="dataHora">Data e hora</label>
+          <input type="datetime-local" id="dataHora" name="dataHora">
+        </div>
+        <div class="field">
+          <label class="field-label" for="inspetor">Inspetor</label>
+          <input type="text" id="inspetor" name="inspetor" placeholder="Nome do inspetor" value="Valdir Júnior">
+        </div>
+        <div class="field">
+          <label class="field-label" for="numRelatorio">Número do relatório</label>
+          <input type="text" id="numRelatorio" name="numRelatorio" placeholder="Auto">
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="sec-resumo">
+      <h2 id="sec-resumo">Resumo</h2>
+      <div class="resumo-grid">
+        <div class="resumo-item">
+          <div class="num" id="countConforme">0</div>
+          <div class="lbl">Conformes</div>
+        </div>
+        <div class="resumo-item nc">
+          <div class="num" id="countNaoConforme">0</div>
+          <div class="lbl">Não conformes</div>
+        </div>
+        <div class="resumo-item na">
+          <div class="num" id="countNA">0</div>
+          <div class="lbl">Não se aplica</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="sec-slots">
+      <h2 id="sec-slots">Itens inspecionados</h2>
+      <p class="hint">Toque no status, registre comentários e anexe foto (câmera ou galeria). Slots vazios não entram no PDF.</p>
+      <div id="slotsContainer"></div>
+      <button type="button" class="btn btn-ghost btn-block no-pdf" id="btnAddSlot" style="margin-top:8px">+ Adicionar slot</button>
+    </section>
+
+    <section class="card" aria-labelledby="sec-acao">
+      <h2 id="sec-acao">Plano de ação</h2>
+      <p class="hint">Registre ações corretivas/preventivas. Use o botão abaixo para novas linhas.</p>
+      <div id="planoAcaoList"></div>
+      <button type="button" class="btn btn-secondary btn-block no-pdf" id="btnAddAcao" style="margin-top:4px">+ Adicionar ação</button>
+    </section>
+
+    <section class="card" aria-labelledby="sec-assin">
+      <h2 id="sec-assin">Assinaturas</h2>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field-label" for="assinInspetor">Inspetor (nome)</label>
+          <input type="text" id="assinInspetor" name="assinInspetor" placeholder="Nome completo">
+        </div>
+        <div class="field">
+          <label class="field-label" for="assinInspetorData">Data</label>
+          <input type="date" id="assinInspetorData" name="assinInspetorData">
+        </div>
+        <div class="field">
+          <label class="field-label" for="assinResponsavel">Responsável da área (nome)</label>
+          <input type="text" id="assinResponsavel" name="assinResponsavel" placeholder="Nome completo">
+        </div>
+        <div class="field">
+          <label class="field-label" for="assinResponsavelData">Data</label>
+          <input type="date" id="assinResponsavelData" name="assinResponsavelData">
+        </div>
+      </div>
+    </section>
+  </div><!-- /#report -->
+
+  <div class="toolbar-bottom no-pdf">
+    <div class="toolbar-row">
+      <button type="button" class="btn btn-primary" id="btnGerarPdf">Gerar PDF</button>
+    </div>
+    <div class="toolbar-row">
+      <button type="button" class="btn btn-secondary" id="btnPrintFallback">Abrir para imprimir</button>
+    </div>
+    <p class="toolbar-hint">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
+  </div>
+
+  <script>
+(function () {
+  'use strict';
+
+  var SLOT_STATUS_LABELS = {
+    'conforme': 'Conforme',
+    'nao-conforme': 'Não conforme',
+    'nao-se-aplica': 'Não se aplica'
+  };
+
+  var ACAO_STATUS = ['Aberto', 'Em andamento', 'Concluído'];
+  var slotCount = 0;
+  var acaoCount = 0;
+
+  function $(id) { return document.getElementById(id); }
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function formatLocalDateTimeInput(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+      'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  function formatLocalDateInput(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  function genReportNumber() {
+    var d = new Date();
+    return 'IR-' + d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) + '-' +
+      pad2(d.getHours()) + pad2(d.getMinutes());
+  }
+
+  function showToast(msg, ms) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function () {
+      t.classList.remove('show');
+    }, ms || 2800);
+  }
+
+  function setLoading(on, text) {
+    var ov = $('loadingOverlay');
+    if (text) $('loadingText').textContent = text;
+    if (on) {
+      ov.classList.add('show');
+      ov.setAttribute('aria-hidden', 'false');
+    } else {
+      ov.classList.remove('show');
+      ov.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  /* ---------- Slots ---------- */
+
+  function createSlot(n) {
+    var el = document.createElement('div');
+    el.className = 'slot';
+    el.dataset.slot = String(n);
+    el.innerHTML =
+      '<div class="slot-header">' +
+        '<span class="slot-num">Slot ' + n + '</span>' +
+        '<input type="text" class="slot-title-input" data-role="slot-title" placeholder="Item / ponto inspecionado (opcional)" aria-label="Título do slot ' + n + '">' +
+      '</div>' +
+      '<div class="status-badge-print" data-role="status-badge"></div>' +
+      '<div class="status-group no-pdf" role="group" aria-label="Status do slot ' + n + '">' +
+        '<button type="button" class="status-btn" data-role="status" data-status="conforme">Conforme</button>' +
+        '<button type="button" class="status-btn" data-role="status" data-status="nao-conforme">Não conforme</button>' +
+        '<button type="button" class="status-btn" data-role="status" data-status="nao-se-aplica">Não se aplica</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label class="field-label">Comentários</label>' +
+        '<textarea data-role="comment" placeholder="Observações, riscos, detalhes…" rows="3"></textarea>' +
+      '</div>' +
+      '<div class="photo-area">' +
+        '<label class="field-label">Foto</label>' +
+        '<div class="photo-preview-wrap" data-role="preview-wrap">' +
+          '<img class="photo-preview" data-role="preview" alt="Prévia do slot ' + n + '">' +
+        '</div>' +
+        '<div class="photo-actions no-pdf">' +
+          '<button type="button" class="btn btn-secondary" data-role="pick-photo" style="flex:1;min-height:44px">📷 Foto / Galeria</button>' +
+          '<button type="button" class="btn btn-danger" data-role="remove-photo" style="display:none">Remover foto</button>' +
+        '</div>' +
+        '<input type="file" class="file-input-hidden" data-role="file" accept="image/*" capture="environment">' +
+      '</div>';
+    return el;
+  }
+
+  function addSlot() {
+    slotCount += 1;
+    var el = createSlot(slotCount);
+    $('slotsContainer').appendChild(el);
+    updateEmptyFlags();
+    updateResumo();
+    return el;
+  }
+
+  function ensureSlots(n) {
+    while (slotCount < n) addSlot();
+  }
+
+  function getSlotStatus(slotEl) {
+    var active = slotEl.querySelector('.status-btn.active');
+    return active ? active.getAttribute('data-status') : '';
+  }
+
+  function isSlotEmpty(slotEl) {
+    var status = getSlotStatus(slotEl);
+    var comment = (slotEl.querySelector('[data-role="comment"]').value || '').trim();
+    var hasPhoto = !!slotEl.querySelector('[data-role="preview"]').getAttribute('src');
+    return !status && !comment && !hasPhoto;
+  }
+
+  function updateEmptyFlags() {
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) {
+      if (isSlotEmpty(slots[i])) {
+        slots[i].classList.add('empty-omit');
+      } else {
+        slots[i].classList.remove('empty-omit');
+      }
+    }
+  }
+
+  function syncStatusBadge(slotEl) {
+    var status = getSlotStatus(slotEl);
+    var badge = slotEl.querySelector('[data-role="status-badge"]');
+    badge.className = 'status-badge-print';
+    if (status) {
+      badge.classList.add(status);
+      badge.textContent = SLOT_STATUS_LABELS[status] || status;
+    } else {
+      badge.textContent = '';
+    }
+  }
+
+  function updateResumo() {
+    var c = 0, nc = 0, na = 0;
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) {
+      var s = getSlotStatus(slots[i]);
+      if (s === 'conforme') c++;
+      else if (s === 'nao-conforme') nc++;
+      else if (s === 'nao-se-aplica') na++;
+    }
+    $('countConforme').textContent = String(c);
+    $('countNaoConforme').textContent = String(nc);
+    $('countNA').textContent = String(na);
+  }
+
+  /* ---------- Plano de ação ---------- */
+
+  function createAcaoRow() {
+    acaoCount += 1;
+    var id = acaoCount;
+    var row = document.createElement('div');
+    row.className = 'acao-row';
+    row.dataset.acao = String(id);
+
+    var statusOpts = '';
+    for (var i = 0; i < ACAO_STATUS.length; i++) {
+      statusOpts += '<option value="' + ACAO_STATUS[i] + '">' + ACAO_STATUS[i] + '</option>';
+    }
+
+    row.innerHTML =
+      '<div class="field">' +
+        '<label class="field-label">O quê (descrição)</label>' +
+        '<textarea data-role="acao-oque" placeholder="Descreva a ação corretiva ou preventiva" rows="2"></textarea>' +
+      '</div>' +
+      '<div class="grid-2">' +
+        '<div class="field">' +
+          '<label class="field-label">Quem (responsável)</label>' +
+          '<input type="text" data-role="acao-quem" placeholder="Responsável">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label class="field-label">Prazo</label>' +
+          '<input type="date" data-role="acao-prazo">' +
+        '</div>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label class="field-label">Status</label>' +
+        '<select data-role="acao-status">' + statusOpts + '</select>' +
+      '</div>' +
+      '<div class="acao-toolbar no-pdf">' +
+        '<button type="button" class="btn btn-danger" data-role="remove-acao">Remover</button>' +
+      '</div>';
+    return row;
+  }
+
+  function addAcao() {
+    var row = createAcaoRow();
+    $('planoAcaoList').appendChild(row);
+    return row;
+  }
+
+  /* ---------- Photo helpers ---------- */
+
+  function readFileAsDataURL(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result); };
+      reader.onerror = function () { reject(reader.error); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function setSlotPhoto(slotEl, dataUrl) {
+    var img = slotEl.querySelector('[data-role="preview"]');
+    var wrap = slotEl.querySelector('[data-role="preview-wrap"]');
+    var btnRemove = slotEl.querySelector('[data-role="remove-photo"]');
+    if (dataUrl) {
+      img.src = dataUrl;
+      wrap.classList.add('has-photo');
+      btnRemove.style.display = '';
+    } else {
+      img.removeAttribute('src');
+      wrap.classList.remove('has-photo');
+      btnRemove.style.display = 'none';
+      var fileInput = slotEl.querySelector('[data-role="file"]');
+      if (fileInput) fileInput.value = '';
+    }
+    updateEmptyFlags();
+  }
+
+  /* ---------- Event delegation ---------- */
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+
+    /* Status toggle */
+    var statusBtn = t.closest('[data-role="status"]');
+    if (statusBtn) {
+      e.preventDefault();
+      var slot = statusBtn.closest('.slot');
+      var already = statusBtn.classList.contains('active');
+      var buttons = slot.querySelectorAll('[data-role="status"]');
+      for (var i = 0; i < buttons.length; i++) buttons[i].classList.remove('active');
+      if (!already) statusBtn.classList.add('active');
+      syncStatusBadge(slot);
+      updateEmptyFlags();
+      updateResumo();
+      return;
+    }
+
+    /* Pick photo */
+    var pickBtn = t.closest('[data-role="pick-photo"]');
+    if (pickBtn) {
+      e.preventDefault();
+      var slotP = pickBtn.closest('.slot');
+      var fileInput = slotP.querySelector('[data-role="file"]');
+      if (fileInput) fileInput.click();
+      return;
+    }
+
+    /* Remove photo */
+    var remPhoto = t.closest('[data-role="remove-photo"]');
+    if (remPhoto) {
+      e.preventDefault();
+      setSlotPhoto(remPhoto.closest('.slot'), null);
+      return;
+    }
+
+    /* Remove ação */
+    var remAcao = t.closest('[data-role="remove-acao"]');
+    if (remAcao) {
+      e.preventDefault();
+      var row = remAcao.closest('.acao-row');
+      if (row) row.remove();
+      return;
+    }
+
+    /* Add slot */
+    if (t.closest('#btnAddSlot')) {
+      e.preventDefault();
+      addSlot();
+      showToast('Slot ' + slotCount + ' adicionado');
+      return;
+    }
+
+    /* Add ação */
+    if (t.closest('#btnAddAcao')) {
+      e.preventDefault();
+      addAcao();
+      showToast('Ação adicionada');
+      return;
+    }
+
+    /* Gerar PDF */
+    if (t.closest('#btnGerarPdf')) {
+      e.preventDefault();
+      gerarPdf();
+      return;
+    }
+
+    /* Print fallback */
+    if (t.closest('#btnPrintFallback')) {
+      e.preventDefault();
+      prepararParaCaptura();
+      setTimeout(function () {
+        window.print();
+        setTimeout(limparCaptura, 500);
+      }, 100);
+      return;
+    }
+
+    /* PDF ready sheet actions — direct gesture handlers for iOS Safari */
+    if (t.closest('#btnSharePdf')) {
+      e.preventDefault();
+      sharePdfNow();
+      return;
+    }
+    if (t.closest('#btnOpenPdf')) {
+      e.preventDefault();
+      openPdfInSafari();
+      return;
+    }
+    if (t.closest('#btnClosePdfSheet') || t.closest('#pdfReadyBackdrop')) {
+      e.preventDefault();
+      closePdfReadySheet();
+      return;
+    }
+  });
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t) return;
+
+    if (t.getAttribute('data-role') === 'file') {
+      var slot = t.closest('.slot');
+      var file = t.files && t.files[0];
+      if (!file) return;
+      if (!file.type || file.type.indexOf('image/') !== 0) {
+        showToast('Selecione uma imagem');
+        t.value = '';
+        return;
+      }
+      readFileAsDataURL(file).then(function (url) {
+        setSlotPhoto(slot, url);
+      }).catch(function () {
+        showToast('Erro ao ler a foto');
+      });
+      return;
+    }
+
+    if (t.getAttribute('data-role') === 'comment' || t.getAttribute('data-role') === 'slot-title') {
+      updateEmptyFlags();
+    }
+  });
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id === 'numRelatorio') {
+      $('headerNumBadge').textContent = 'Nº ' + (t.value || '—');
+    }
+    if (t.getAttribute('data-role') === 'comment') {
+      updateEmptyFlags();
+    }
+  });
+
+  /* ---------- PDF ---------- */
+
+  function prepararParaCaptura() {
+    updateEmptyFlags();
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) syncStatusBadge(slots[i]);
+    document.body.classList.add('pdf-mode');
+  }
+
+  function limparCaptura() {
+    document.body.classList.remove('pdf-mode');
+  }
+
+  function pdfFilename() {
+    var d = new Date();
+    var raw = $('dataHora').value;
+    if (raw && raw.length >= 10) {
+      return 'inspecao-rotina-' + raw.slice(0, 10) + '.pdf';
+    }
+    return 'inspecao-rotina-' + d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + '.pdf';
+  }
+
+  function libsReady() {
+    return !!(window.html2canvas && (window.jspdf || window.jsPDF));
+  }
+
+  function getJsPdf() {
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    if (window.jsPDF) return window.jsPDF;
+    return null;
+  }
+
+  function waitForLibs(timeoutMs) {
+    return new Promise(function (resolve) {
+      if (libsReady()) { resolve(true); return; }
+      var start = Date.now();
+      var timer = setInterval(function () {
+        if (libsReady()) {
+          clearInterval(timer);
+          resolve(true);
+        } else if (Date.now() - start > timeoutMs) {
+          clearInterval(timer);
+          resolve(false);
+        }
+      }, 150);
+    });
+  }
+
+  var pdfRevokeTimer = null;
+
+  function storePdfInMemory(blob, filename) {
+    if (pdfRevokeTimer) {
+      clearTimeout(pdfRevokeTimer);
+      pdfRevokeTimer = null;
+    }
+    if (window.__lastPdfUrl) {
+      try { URL.revokeObjectURL(window.__lastPdfUrl); } catch (e) {}
+    }
+    var file = null;
+    try {
+      file = new File([blob], filename, { type: 'application/pdf' });
+    } catch (err) {
+      file = null;
+    }
+    var url = URL.createObjectURL(blob);
+    window.__lastPdfBlob = blob;
+    window.__lastPdfFile = file;
+    window.__lastPdfUrl = url;
+    window.__lastPdfName = filename;
+    window.__lastPdfOpenedAt = Date.now();
+    return { blob: blob, file: file, url: url, name: filename };
+  }
+
+  function schedulePdfUrlRevoke() {
+    if (pdfRevokeTimer) clearTimeout(pdfRevokeTimer);
+    /* Keep blob URL a few minutes after sheet closes so Abrir PDF still works */
+    pdfRevokeTimer = setTimeout(function () {
+      var sheet = $('pdfReadySheet');
+      if (sheet && sheet.classList.contains('show')) return;
+      if (window.__lastPdfUrl) {
+        try { URL.revokeObjectURL(window.__lastPdfUrl); } catch (e) {}
+        window.__lastPdfUrl = null;
+      }
+      pdfRevokeTimer = null;
+    }, 3 * 60 * 1000);
+  }
+
+  function openPdfReadySheet(filename) {
+    var sheet = $('pdfReadySheet');
+    var nameEl = $('pdfReadyFilename');
+    var secureNote = $('pdfReadySecureNote');
+    if (nameEl) nameEl.textContent = filename || 'relatorio.pdf';
+    if (secureNote) {
+      if (!window.isSecureContext) secureNote.classList.add('show');
+      else secureNote.classList.remove('show');
+    }
+    if (sheet) {
+      sheet.classList.add('show');
+      sheet.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closePdfReadySheet() {
+    var sheet = $('pdfReadySheet');
+    if (sheet) {
+      sheet.classList.remove('show');
+      sheet.setAttribute('aria-hidden', 'true');
+    }
+    schedulePdfUrlRevoke();
+  }
+
+  function openPdfInSafari() {
+    var url = window.__lastPdfUrl;
+    if (!url && window.__lastPdfBlob) {
+      url = URL.createObjectURL(window.__lastPdfBlob);
+      window.__lastPdfUrl = url;
+    }
+    if (!url) {
+      showToast('PDF não disponível. Gere novamente.');
+      return;
+    }
+    /* Prefer synchronous <a target=_blank>.click() so Safari keeps the user gesture */
+    var a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    if (a.parentNode) a.parentNode.removeChild(a);
+    /* Fallback if tab did not open */
+    setTimeout(function () {
+      try {
+        var w = window.open(url, '_blank');
+        if (!w) showToast('Não foi possível abrir. Use Compartilhar ou “Abrir para imprimir”.');
+      } catch (e) {}
+    }, 100);
+  }
+
+  async function sharePdfNow() {
+    var file = window.__lastPdfFile;
+    var blob = window.__lastPdfBlob;
+    var name = window.__lastPdfName || 'relatorio.pdf';
+    if (!file && blob) {
+      try {
+        file = new File([blob], name, { type: 'application/pdf' });
+        window.__lastPdfFile = file;
+      } catch (err) {
+        file = null;
+      }
+    }
+    try {
+      if (navigator.share && file) {
+        /* Try files first; if canShare exists and rejects files, still try share with files on iOS 15+ */
+        var payload = { files: [file], title: 'Relatório de Inspeção', text: name };
+        if (!navigator.canShare || navigator.canShare(payload)) {
+          await navigator.share(payload);
+          return;
+        }
+        /* canShare rejected — still attempt share with files (some iOS builds report false) */
+        try {
+          await navigator.share(payload);
+          return;
+        } catch (e2) {
+          if (e2 && e2.name === 'AbortError') return;
+        }
+      } else if (navigator.share) {
+        await navigator.share({ title: 'Relatório de Inspeção', text: name });
+        return;
+      }
+    } catch (e) {
+      /* AbortError = user cancelled — ignore */
+      if (e && e.name === 'AbortError') return;
+    }
+    /* Fallback: open PDF so Safari chrome share works */
+    openPdfInSafari();
+  }
+
+  async function tryShareImmediatelyAfterGenerate() {
+    /* Best-effort: still in async stack from click; sheet remains the reliable path */
+    var file = window.__lastPdfFile;
+    var name = window.__lastPdfName || 'relatorio.pdf';
+    if (!navigator.share || !file) return;
+    try {
+      var payload = { files: [file], title: 'Relatório de Inspeção', text: name };
+      if (!navigator.canShare || navigator.canShare(payload)) {
+        await navigator.share(payload);
+      }
+    } catch (e) {
+      /* ignore — user can tap Compartilhar on the sheet */
+    }
+  }
+
+  function presentPdfResult(blob, filename) {
+    storePdfInMemory(blob, filename);
+    openPdfReadySheet(filename);
+    showToast('PDF pronto: ' + filename);
+    /* Fire-and-forget immediate share attempt; sheet stays open either way */
+    tryShareImmediatelyAfterGenerate();
+  }
+
+  async function gerarPdf() {
+    setLoading(true, 'Gerando PDF…');
+    var ok = await waitForLibs(8000);
+    if (!ok) {
+      setLoading(false);
+      showToast('Biblioteca PDF indisponível (precisa de internet na 1ª vez). Use “Abrir para imprimir”.');
+      return;
+    }
+
+    var JsPDF = getJsPdf();
+    if (!JsPDF) {
+      setLoading(false);
+      showToast('jsPDF não carregou. Use “Abrir para imprimir”.');
+      return;
+    }
+
+    prepararParaCaptura();
+
+    /* Allow layout to settle (images, badges) */
+    await new Promise(function (r) { setTimeout(r, 180); });
+
+    var reportEl = $('report');
+    var filename = pdfFilename();
+
+    try {
+      var canvas = await window.html2canvas(reportEl, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        imageTimeout: 15000,
+        onclone: function (clonedDoc) {
+          var body = clonedDoc.body;
+          body.classList.add('pdf-mode');
+          /* Hide no-pdf in clone explicitly */
+          var hide = body.querySelectorAll('.no-pdf');
+          for (var i = 0; i < hide.length; i++) hide[i].style.display = 'none';
+          var empties = body.querySelectorAll('.slot.empty-omit');
+          for (var j = 0; j < empties.length; j++) empties[j].style.display = 'none';
+          var groups = body.querySelectorAll('.status-group');
+          for (var k = 0; k < groups.length; k++) groups[k].style.display = 'none';
+          var badges = body.querySelectorAll('.status-badge-print');
+          for (var m = 0; m < badges.length; m++) {
+            if (badges[m].textContent) badges[m].style.display = 'block';
+          }
+        }
+      });
+
+      var imgData = canvas.toDataURL('image/jpeg', 0.92);
+      var pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pageWidth = pdf.internal.pageSize.getWidth();
+      var pageHeight = pdf.internal.pageSize.getHeight();
+      var margin = 8;
+      var usableWidth = pageWidth - margin * 2;
+      var imgHeight = (canvas.height * usableWidth) / canvas.width;
+
+      var heightLeft = imgHeight;
+      var position = margin;
+
+      pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeight);
+      heightLeft -= (pageHeight - margin * 2);
+
+      while (heightLeft > 2) {
+        position = margin - (imgHeight - heightLeft);
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeight);
+        heightLeft -= (pageHeight - margin * 2);
+      }
+
+      var blob = pdf.output('blob');
+      limparCaptura();
+      setLoading(false);
+
+      presentPdfResult(blob, filename);
+    } catch (err) {
+      limparCaptura();
+      setLoading(false);
+      console.error(err);
+      showToast('Falha ao gerar PDF. Tente “Abrir para imprimir”.');
+    }
+  }
+
+  /* ---------- Init ---------- */
+
+  function init() {
+    var now = new Date();
+    $('dataHora').value = formatLocalDateTimeInput(now);
+    $('assinInspetorData').value = formatLocalDateInput(now);
+    $('assinResponsavelData').value = formatLocalDateInput(now);
+
+    var num = genReportNumber();
+    $('numRelatorio').value = num;
+    $('headerNumBadge').textContent = 'Nº ' + num;
+
+    if ($('inspetor').value) {
+      $('assinInspetor').value = $('inspetor').value;
+    }
+
+    ensureSlots(12);
+
+    /* Start with 3 empty action rows so UI is obvious */
+    addAcao();
+    addAcao();
+    addAcao();
+
+    updateResumo();
+    updateEmptyFlags();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+  </script>
+</body>
+</html>
