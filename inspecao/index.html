@@ -640,6 +640,33 @@
     body.pdf-mode .slot .status-badge-print:empty { display:none !important; }
     body.pdf-mode .slot-header { justify-content:flex-start; }
     body.pdf-mode .acao-row.empty-omit { display:none !important; }
+    .pdf-only { display:none; }
+    body.pdf-mode .pdf-only { display:block !important; }
+    body.pdf-mode #planoAcaoList { display:none !important; }
+    .sig-grid { display:grid; grid-template-columns:1fr; gap:14px; }
+    @media (min-width:900px) { .sig-grid { grid-template-columns:1fr 1fr 1fr; } }
+    .sig-block { border:1.5px solid var(--border); border-radius:var(--radius); padding:12px; background:#fafcfa; }
+    .sig-title { font-weight:700; color:var(--primary-dark); margin-bottom:8px; }
+    .sig-pad { display:block; width:100%; height:150px; background:#fff; border:1.5px dashed var(--primary); border-radius:10px; touch-action:none; cursor:crosshair; }
+    .pdf-sig-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:22px; padding-top:6px; }
+    .pdf-sig { text-align:center; font-size:.8rem; }
+    .pdf-sig .img { height:80px; display:flex; align-items:flex-end; justify-content:center; }
+    .pdf-sig img { max-height:80px; max-width:100%; }
+    .pdf-sig .line { border-top:1.5px solid #222; margin:4px 0 6px; }
+    .pdf-sig .nm { font-weight:700; } .pdf-sig .cg { color:#444; } .pdf-sig .rl { color:var(--primary-dark); font-weight:700; font-size:.72rem; text-transform:uppercase; margin-top:4px; }
+    .acao-row .acao-head { display:flex; gap:8px; align-items:center; margin-bottom:8px; font-weight:700; color:var(--primary-dark); }
+    .acao-photo-wrap img { width:100%; max-height:200px; object-fit:contain; border-radius:10px; border:1px solid var(--border); margin-top:6px; }
+    .slot-links { margin-top:10px; }
+    .slot-links .links-list { font-size:.85rem; }
+    .slot-links .lk { border-left:3px solid var(--nc); background:#fff7f7; padding:6px 8px; border-radius:6px; margin-bottom:6px; }
+    .slot-links .lk b { color:var(--nc); }
+    .prio { display:inline-block; padding:1px 8px; border-radius:6px; font-size:.72rem; font-weight:700; }
+    .prio.Alta { background:#fee2e2; color:#b00020; } .prio.Média { background:#fef3c7; color:#92400e; } .prio.Baixa { background:#e0f2fe; color:#075985; }
+    table.pdf-acoes { width:100%; border-collapse:collapse; font-size:.74rem; }
+    table.pdf-acoes th { background:var(--primary); color:#fff; text-align:left; padding:5px 6px; font-weight:700; }
+    table.pdf-acoes td { border-bottom:1px solid #d6ddd6; padding:6px; vertical-align:top; }
+    table.pdf-acoes img { width:74px; height:56px; object-fit:cover; border-radius:4px; display:block; }
+    table.pdf-acoes .it { font-weight:700; color:var(--primary-dark); }
   </style>
 </head>
 <body>
@@ -763,33 +790,52 @@
       <button type="button" class="btn btn-ghost btn-block no-pdf" id="btnAddSlot" style="margin-top:8px">+ Adicionar slot</button>
     </section>
 
-    <section class="card" aria-labelledby="sec-acao">
-      <h2 id="sec-acao">Plano de ação</h2>
-      <p class="hint no-pdf">Registre ações corretivas/preventivas. Use o botão abaixo para novas linhas.</p>
+    <section class="card" aria-labelledby="sec-acao" id="secAcoes">
+      <h2 id="sec-acao">Plano de ação / Melhorias</h2>
+      <p class="hint no-pdf">Registre melhorias e ações corretivas, de preferência vinculadas ao item não conforme.</p>
       <div id="planoAcaoList"></div>
-      <button type="button" class="btn btn-secondary btn-block no-pdf" id="btnAddAcao" style="margin-top:4px">+ Adicionar ação</button>
+      <div id="pdfAcoes" class="pdf-only"></div>
+      <button type="button" class="btn btn-secondary btn-block no-pdf" id="btnAddAcao" style="margin-top:4px">+ Adicionar ação / melhoria</button>
     </section>
 
-    <section class="card" aria-labelledby="sec-assin">
+    <section class="card" aria-labelledby="sec-assin" id="secAssin">
       <h2 id="sec-assin">Assinaturas</h2>
-      <div class="grid-2">
-        <div class="field">
-          <label class="field-label" for="assinInspetor">Inspetor (nome)</label>
-          <input type="text" id="assinInspetor" name="assinInspetor" placeholder="Nome completo">
+      <div class="sig-grid no-pdf">
+        <div class="sig-block" data-sig="1">
+          <div class="sig-title">Inspetor (executante)</div>
+          <div class="field"><label class="field-label" for="sig1Nome">Nome</label><input type="text" id="sig1Nome" placeholder="Quem fez a inspeção"></div>
+          <div class="grid-2">
+            <div class="field"><label class="field-label" for="sig1Cargo">Cargo / função</label><input type="text" id="sig1Cargo" placeholder="Cargo"></div>
+            <div class="field"><label class="field-label" for="sig1Data">Data</label><input type="date" id="sig1Data"></div>
+          </div>
+          <label class="field-label">Assinatura (desenhe com o dedo)</label>
+          <canvas class="sig-pad" id="sig1Pad" data-sig="1"></canvas>
+          <button type="button" class="btn btn-ghost" data-role="sig-clear" data-sig="1" style="min-height:40px;margin-top:6px">Limpar assinatura</button>
         </div>
-        <div class="field">
-          <label class="field-label" for="assinInspetorData">Data</label>
-          <input type="date" id="assinInspetorData" name="assinInspetorData">
+        <div class="sig-block" data-sig="2">
+          <div class="sig-title">Responsável pela inspeção</div>
+          <div class="field"><label class="field-label" for="sig2Nome">Nome</label><input type="text" id="sig2Nome" placeholder="Responsável técnico"></div>
+          <div class="grid-2">
+            <div class="field"><label class="field-label" for="sig2Cargo">Cargo / função</label><input type="text" id="sig2Cargo" placeholder="Cargo"></div>
+            <div class="field"><label class="field-label" for="sig2Data">Data</label><input type="date" id="sig2Data"></div>
+          </div>
+          <label class="field-label">Assinatura (desenhe com o dedo)</label>
+          <canvas class="sig-pad" id="sig2Pad" data-sig="2"></canvas>
+          <button type="button" class="btn btn-ghost" data-role="sig-clear" data-sig="2" style="min-height:40px;margin-top:6px">Limpar assinatura</button>
         </div>
-        <div class="field">
-          <label class="field-label" for="assinResponsavel">Responsável da área (nome)</label>
-          <input type="text" id="assinResponsavel" name="assinResponsavel" placeholder="Nome completo">
-        </div>
-        <div class="field">
-          <label class="field-label" for="assinResponsavelData">Data</label>
-          <input type="date" id="assinResponsavelData" name="assinResponsavelData">
+        <div class="sig-block" data-sig="3">
+          <div class="sig-title">Inspecionado (responsável da área)</div>
+          <div class="field"><label class="field-label" for="sig3Nome">Nome</label><input type="text" id="sig3Nome" placeholder="Quem foi inspecionado"></div>
+          <div class="grid-2">
+            <div class="field"><label class="field-label" for="sig3Cargo">Cargo / função</label><input type="text" id="sig3Cargo" placeholder="Cargo"></div>
+            <div class="field"><label class="field-label" for="sig3Data">Data</label><input type="date" id="sig3Data"></div>
+          </div>
+          <label class="field-label">Assinatura (desenhe com o dedo)</label>
+          <canvas class="sig-pad" id="sig3Pad" data-sig="3"></canvas>
+          <button type="button" class="btn btn-ghost" data-role="sig-clear" data-sig="3" style="min-height:40px;margin-top:6px">Limpar assinatura</button>
         </div>
       </div>
+      <div id="pdfSigs" class="pdf-only"></div>
     </section>
   </div><!-- /#report -->
 
@@ -892,7 +938,11 @@
           '<button type="button" class="btn btn-danger" data-role="remove-photo" style="display:none">Remover foto</button>' +
         '</div>' +
         '<input type="file" class="file-input-hidden" data-role="file" accept="image/*" capture="environment">' +
-      '</div></div>';
+      '</div></div>' +
+      '<div class="slot-links" data-role="slot-links">' +
+        '<div class="links-list" data-role="links-list"></div>' +
+        '<button type="button" class="btn btn-secondary no-pdf" data-role="add-melhoria" style="display:none;min-height:42px">+ Adicionar melhoria</button>' +
+      '</div>';
     return el;
   }
 
@@ -975,27 +1025,46 @@
       statusOpts += '<option value="' + ACAO_STATUS[i] + '">' + ACAO_STATUS[i] + '</option>';
     }
 
+    var prioOpts = ['Alta', 'Média', 'Baixa'].map(function (x) { return '<option value="' + x + '"' + (x === 'Média' ? ' selected' : '') + '>' + x + '</option>'; }).join('');
     row.innerHTML =
+      '<div class="acao-head">Ação ' + id + '</div>' +
       '<div class="field">' +
-        '<label class="field-label">O quê (descrição)</label>' +
-        '<textarea data-role="acao-oque" placeholder="Descreva a ação corretiva ou preventiva" rows="2"></textarea>' +
+        '<label class="field-label">Item vinculado</label>' +
+        '<select data-role="acao-item"><option value="">— Sem vínculo (geral) —</option></select>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label class="field-label">Melhoria / ação corretiva (o quê)</label>' +
+        '<textarea data-role="acao-oque" placeholder="Descreva a melhoria ou ação corretiva" rows="2"></textarea>' +
       '</div>' +
       '<div class="grid-2">' +
         '<div class="field">' +
-          '<label class="field-label">Quem (responsável)</label>' +
+          '<label class="field-label">Responsável</label>' +
           '<input type="text" data-role="acao-quem" placeholder="Responsável">' +
         '</div>' +
         '<div class="field">' +
           '<label class="field-label">Prazo</label>' +
           '<input type="date" data-role="acao-prazo">' +
         '</div>' +
+        '<div class="field">' +
+          '<label class="field-label">Status</label>' +
+          '<select data-role="acao-status">' + statusOpts + '</select>' +
+        '</div>' +
+        '<div class="field">' +
+          '<label class="field-label">Prioridade</label>' +
+          '<select data-role="acao-prio">' + prioOpts + '</select>' +
+        '</div>' +
       '</div>' +
       '<div class="field">' +
-        '<label class="field-label">Status</label>' +
-        '<select data-role="acao-status">' + statusOpts + '</select>' +
+        '<label class="field-label">Foto “depois” (opcional)</label>' +
+        '<div class="acao-photo-wrap"><img data-role="acao-photo" alt="Foto depois" style="display:none"></div>' +
+        '<div class="photo-actions">' +
+          '<button type="button" class="btn btn-secondary" data-role="acao-pick" style="flex:1;min-height:44px">📷 Foto depois</button>' +
+          '<button type="button" class="btn btn-danger" data-role="acao-photo-del" style="display:none">Remover foto</button>' +
+        '</div>' +
+        '<input type="file" class="file-input-hidden" data-role="acao-file" accept="image/*" capture="environment">' +
       '</div>' +
       '<div class="acao-toolbar no-pdf">' +
-        '<button type="button" class="btn btn-danger" data-role="remove-acao">Remover</button>' +
+        '<button type="button" class="btn btn-danger" data-role="remove-acao">Remover ação</button>' +
       '</div>';
     return row;
   }
@@ -1277,6 +1346,7 @@
   }
   function updateDashboard() {
     if (!$('countNaoAval')) return;
+    refreshLinks();
     var k = dashCounts(), tot = k.c + k.nc + k.na + k.nv, aval = k.c + k.nc + k.na;
     $('countConforme').textContent = k.c; $('countNaoConforme').textContent = k.nc;
     $('countNA').textContent = k.na; $('countNaoAval').textContent = k.nv;
@@ -1326,9 +1396,10 @@
   document.addEventListener('input', function (e) {
     if (!e.target) return;
     if (e.target.id === 'empresa') syncLogo();
-    if (e.target.id === 'respArea' && $('assinResponsavel') && (!$('assinResponsavel').value || $('assinResponsavel').dataset.auto === '1')) {
-      $('assinResponsavel').value = e.target.value; $('assinResponsavel').dataset.auto = '1';
-    }
+    var map = { respArea: 'sig3Nome', inspetor: 'sig1Nome' };
+    var tgt = map[e.target.id] && $(map[e.target.id]);
+    if (tgt && (!tgt.value || tgt.dataset.auto === '1')) { tgt.value = e.target.value; tgt.dataset.auto = '1'; }
+    if (/^sig\dNome$/.test(e.target.id)) e.target.dataset.auto = '';
   });
 
   /* ---------- PDF paginado ---------- */
@@ -1345,12 +1416,13 @@
       var rr = reportEl.getBoundingClientRect();
       /* candidatos de quebra: topo de cada card e de cada item (menos o 1º item, que fica com o título) */
       var cands = [];
-      var els = reportEl.querySelectorAll('section.card, .slot, .acao-row');
-      var firstSlot = true, firstAcao = true;
+      var els = reportEl.querySelectorAll('section.card, .slot, .acao-row, tr.pdf-acao-tr');
+      var firstSlot = true, firstAcao = true, firstTr = true;
       for (var i = 0; i < els.length; i++) {
         var el = els[i];
         if (!el.offsetParent && el.offsetHeight === 0) continue;
         if (el.classList.contains('slot')) { if (firstSlot) { firstSlot = false; continue; } }
+        if (el.classList.contains('pdf-acao-tr')) { if (firstTr) { firstTr = false; continue; } }
         if (el.classList.contains('acao-row')) { if (el.classList.contains('empty-omit')) continue; if (firstAcao) { firstAcao = false; continue; } }
         cands.push(el.getBoundingClientRect().top - rr.top - 6);
       }
@@ -1400,6 +1472,182 @@
   }
   window.__gerarPdfPaginado = gerarPdfPaginado;
 
+  /* ---------- Melhorias vinculadas ---------- */
+  function esc(x) { return String(x == null ? '' : x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fmtDateBR(v) { return /^\d{4}-\d{2}-\d{2}$/.test(v || '') ? v.slice(8, 10) + '/' + v.slice(5, 7) + '/' + v.slice(0, 4) : (v || ''); }
+  function slotLabel(sl) {
+    var t = (sl.querySelector('[data-role="slot-title"]').value || '').trim();
+    return 'Item ' + sl.dataset.slot + (t ? ' — ' + t : '');
+  }
+  function slotByNum(n) { return $('slotsContainer').querySelector('.slot[data-slot="' + n + '"]'); }
+  function acaoData(r) {
+    return {
+      item: r.querySelector('[data-role="acao-item"]').value,
+      oque: (r.querySelector('[data-role="acao-oque"]').value || '').trim(),
+      quem: (r.querySelector('[data-role="acao-quem"]').value || '').trim(),
+      prazo: r.querySelector('[data-role="acao-prazo"]').value,
+      status: r.querySelector('[data-role="acao-status"]').value,
+      prio: r.querySelector('[data-role="acao-prio"]').value,
+      photo: r.querySelector('[data-role="acao-photo"]').getAttribute('src') || ''
+    };
+  }
+  var refreshing = false;
+  function refreshLinks() {
+    if (refreshing) return; refreshing = true;
+    try {
+      var slots = $('slotsContainer').querySelectorAll('.slot'), opts = '<option value="">— Sem vínculo (geral) —</option>';
+      for (var i = 0; i < slots.length; i++) {
+        var sl = slots[i];
+        if (!isSlotEmpty(sl)) opts += '<option value="' + sl.dataset.slot + '">' + esc(slotLabel(sl)) + '</option>';
+      }
+      var rows = $('planoAcaoList').querySelectorAll('.acao-row'), byItem = {};
+      for (var j = 0; j < rows.length; j++) {
+        var sel = rows[j].querySelector('[data-role="acao-item"]');
+        var cur = sel.dataset.want || sel.value;
+        if (sel.innerHTML !== opts) sel.innerHTML = opts;
+        if (cur && !sel.querySelector('option[value="' + cur + '"]') && slotByNum(cur)) {
+          var o = document.createElement('option'); o.value = cur; o.textContent = slotLabel(slotByNum(cur)); sel.appendChild(o);
+        }
+        sel.value = cur || ''; delete sel.dataset.want;
+        var a = acaoData(rows[j]);
+        if (a.item) (byItem[a.item] = byItem[a.item] || []).push(a);
+      }
+      for (var k = 0; k < slots.length; k++) {
+        var s2 = slots[k], list = byItem[s2.dataset.slot] || [];
+        var isNC = getSlotStatus(s2) === 'nao-conforme';
+        s2.querySelector('[data-role="add-melhoria"]').style.display = isNC ? '' : 'none';
+        var html = list.map(function (a) {
+          return '<div class="lk"><b>Melhoria:</b> ' + esc(a.oque || '(descrever)') +
+            (a.quem ? ' · <i>' + esc(a.quem) + '</i>' : '') + (a.prazo ? ' · até ' + fmtDateBR(a.prazo) : '') +
+            ' · <span class="prio ' + esc(a.prio) + '">' + esc(a.prio) + '</span> · ' + esc(a.status) + '</div>';
+        }).join('');
+        var ll = s2.querySelector('[data-role="links-list"]');
+        if (ll.innerHTML !== html) ll.innerHTML = html;
+      }
+    } finally { refreshing = false; }
+  }
+  function addMelhoriaFor(slotEl, focus) {
+    var r = addAcao();
+    var sel = r.querySelector('[data-role="acao-item"]');
+    sel.dataset.want = slotEl.dataset.slot;
+    r.querySelector('[data-role="acao-prio"]').value = 'Alta';
+    refreshLinks(); scheduleSave();
+    if (focus) { r.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(function () { r.querySelector('[data-role="acao-oque"]').focus(); }, 350); }
+    return r;
+  }
+  function setAcaoPhoto(r, url) {
+    var img = r.querySelector('[data-role="acao-photo"]'), del = r.querySelector('[data-role="acao-photo-del"]');
+    if (url) { img.src = url; img.style.display = ''; del.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; del.style.display = 'none'; r.querySelector('[data-role="acao-file"]').value = ''; }
+    scheduleSave();
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    var b = t.closest('[data-role="add-melhoria"]');
+    if (b) { e.preventDefault(); addMelhoriaFor(b.closest('.slot'), true); showToast('Melhoria adicionada ao plano de ação'); return; }
+    var st = t.closest('[data-role="status"]');
+    if (st && st.getAttribute('data-status') === 'nao-conforme') {
+      setTimeout(function () {
+        if (!st.classList.contains('active')) { refreshLinks(); return; }
+        var sl = st.closest('.slot'), rows = $('planoAcaoList').querySelectorAll('.acao-row'), has = false;
+        for (var i = 0; i < rows.length; i++) if (rows[i].querySelector('[data-role="acao-item"]').value === sl.dataset.slot) has = true;
+        if (!has) { addMelhoriaFor(sl, false); showToast('Não conforme: sugeri uma melhoria no plano de ação'); }
+        else refreshLinks();
+      }, 0);
+      return;
+    }
+    if (t.closest('[data-role="acao-pick"]')) { e.preventDefault(); t.closest('.acao-row').querySelector('[data-role="acao-file"]').click(); return; }
+    if (t.closest('[data-role="acao-photo-del"]')) { e.preventDefault(); setAcaoPhoto(t.closest('.acao-row'), null); return; }
+    var sc = t.closest('[data-role="sig-clear"]');
+    if (sc) { e.preventDefault(); setSigUrl(sc.getAttribute('data-sig'), ''); scheduleSave(); return; }
+  });
+  document.addEventListener('change', function (e) {
+    var t = e.target; if (!t || !t.getAttribute) return;
+    if (t.getAttribute('data-role') === 'acao-file' && t.files && t.files[0]) {
+      var r = t.closest('.acao-row'), a = acaoData(r), src = a.item ? slotByNum(a.item) : null;
+      var fake = {
+        dataset: { slot: (a.item || '-') + ' (depois) · Ação ' + r.dataset.acao },
+        querySelector: function () { return { value: src ? (src.querySelector('[data-role="slot-title"]').value || '') : (a.oque || '') }; }
+      };
+      processarFoto(t.files[0], fake).then(function (url) { setAcaoPhoto(r, url); })
+        .catch(function () { showToast('Erro ao ler a foto'); });
+      return;
+    }
+    if (/^acao-/.test(t.getAttribute('data-role') || '')) refreshLinks();
+  });
+  document.addEventListener('input', function (e) {
+    var t = e.target; if (t && /^acao-|slot-title/.test(t.getAttribute && t.getAttribute('data-role') || '')) refreshLinks();
+  });
+
+  /* ---------- Assinaturas (desenho) ---------- */
+  function sizePad(cv) {
+    var r = cv.getBoundingClientRect(); if (!r.width) return;
+    var dpr = Math.max(1, window.devicePixelRatio || 1), w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (cv.width === w && cv.height === h) return;
+    cv.width = w; cv.height = h; redrawPad(cv);
+  }
+  function redrawPad(cv) {
+    var ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
+    var u = cv.dataset.url; if (!u) return;
+    var im = new Image(); im.onload = function () {
+      var sc = Math.min(cv.width / im.width, cv.height / im.height);
+      ctx.drawImage(im, (cv.width - im.width * sc) / 2, (cv.height - im.height * sc) / 2, im.width * sc, im.height * sc);
+    }; im.src = u;
+  }
+  function setSigUrl(n, url) { var cv = $('sig' + n + 'Pad'); if (!cv) return; cv.dataset.url = url || ''; redrawPad(cv); }
+  function initPads() {
+    var pads = document.querySelectorAll('.sig-pad');
+    Array.prototype.forEach.call(pads, function (cv) {
+      sizePad(cv);
+      var drawing = false, last = null, ctx = cv.getContext('2d');
+      function pt(e) { var r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * cv.width / r.width, (e.clientY - r.top) * cv.height / r.height]; }
+      cv.addEventListener('pointerdown', function (e) {
+        sizePad(cv); drawing = true; last = pt(e); try { cv.setPointerCapture(e.pointerId); } catch (x) {}
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0b1f4d'; ctx.lineWidth = 2.6 * Math.max(1, window.devicePixelRatio || 1);
+        ctx.beginPath(); ctx.arc(last[0], last[1], ctx.lineWidth / 2, 0, Math.PI * 2); ctx.fillStyle = ctx.strokeStyle; ctx.fill();
+        e.preventDefault();
+      });
+      cv.addEventListener('pointermove', function (e) {
+        if (!drawing) return; var p = pt(e);
+        ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); last = p; e.preventDefault();
+      });
+      function end() { if (!drawing) return; drawing = false; cv.dataset.url = cv.toDataURL('image/png'); scheduleSave(); }
+      cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end); cv.addEventListener('pointerleave', end);
+    });
+    window.addEventListener('resize', function () { Array.prototype.forEach.call(pads, sizePad); });
+  }
+
+  /* ---------- Blocos extras do PDF ---------- */
+  function buildPdfExtras() {
+    refreshLinks();
+    var rows = $('planoAcaoList').querySelectorAll('.acao-row'), trs = '';
+    for (var i = 0; i < rows.length; i++) {
+      var a = acaoData(rows[i]);
+      if (!a.oque && !a.quem && !a.prazo && !a.photo && !a.item) continue;
+      var sl = a.item ? slotByNum(a.item) : null;
+      var thumb = sl && sl.querySelector('[data-role="preview"]').getAttribute('src');
+      trs += '<tr class="pdf-acao-tr">' +
+        '<td>' + (thumb ? '<img src="' + thumb + '">' : '') + '</td>' +
+        '<td class="it">' + (sl ? esc(slotLabel(sl)) : 'Geral') + '</td>' +
+        '<td>' + esc(a.oque || '—') + '</td>' +
+        '<td>' + esc(a.quem || '—') + '</td>' +
+        '<td>' + (fmtDateBR(a.prazo) || '—') + '</td>' +
+        '<td><span class="prio ' + esc(a.prio) + '">' + esc(a.prio) + '</span></td>' +
+        '<td>' + esc(a.status) + '</td>' +
+        '<td>' + (a.photo ? '<img src="' + a.photo + '">' : '') + '</td></tr>';
+    }
+    $('pdfAcoes').innerHTML = trs ? '<table class="pdf-acoes"><thead><tr><th>Foto item</th><th>Item</th><th>Melhoria / ação</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Status</th><th>Depois</th></tr></thead><tbody>' + trs + '</tbody></table>'
+      : '<p style="font-size:.85rem;color:#555;margin:0">Nenhuma ação registrada.</p>';
+    var roles = ['Inspetor (executante)', 'Responsável pela inspeção', 'Inspecionado (responsável da área)'];
+    $('pdfSigs').innerHTML = '<div class="pdf-sig-grid">' + [1, 2, 3].map(function (n) {
+      var u = $('sig' + n + 'Pad').dataset.url, nm = ($('sig' + n + 'Nome').value || '').trim(), cg = ($('sig' + n + 'Cargo').value || '').trim();
+      return '<div class="pdf-sig"><div class="img">' + (u ? '<img src="' + u + '">' : '') + '</div><div class="line"></div>' +
+        '<div class="nm">' + (esc(nm) || '&nbsp;') + '</div><div class="cg">' + (esc(cg) || '&nbsp;') + '</div>' +
+        '<div class="cg">Data: ' + (fmtDateBR($('sig' + n + 'Data').value) || '____/____/______') + '</div>' +
+        '<div class="rl">' + roles[n - 1] + '</div></div>';
+    }).join('') + '</div>';
+  }
+
   /* ---------- Rascunho automático (IndexedDB) ---------- */
 
   var DB_NAME = 'inspecaoSST', DB_STORE = 'rascunho', DRAFT_KEY = 'atual';
@@ -1422,7 +1670,7 @@
       });
     });
   }
-  var FORM_IDS = ['empresa','local','data','hora','respArea','inspetor','numRelatorio','assinInspetor','assinInspetorData','assinResponsavel','assinResponsavelData'];
+  var FORM_IDS = ['empresa','local','data','hora','respArea','inspetor','numRelatorio','sig1Nome','sig1Cargo','sig1Data','sig2Nome','sig2Cargo','sig2Data','sig3Nome','sig3Cargo','sig3Data'];
   var restoring = false;
   function collectDraft() {
     var d = { v: 1, savedAt: Date.now(), fields: {}, slots: [], acoes: [] };
@@ -1444,9 +1692,13 @@
         oque: r.querySelector('[data-role="acao-oque"]').value,
         quem: r.querySelector('[data-role="acao-quem"]').value,
         prazo: r.querySelector('[data-role="acao-prazo"]').value,
-        status: r.querySelector('[data-role="acao-status"]').value
+        status: r.querySelector('[data-role="acao-status"]').value,
+        item: r.querySelector('[data-role="acao-item"]').value,
+        prio: r.querySelector('[data-role="acao-prio"]').value,
+        photo: r.querySelector('[data-role="acao-photo"]').getAttribute('src') || ''
       });
     }
+    d.sigs = [1, 2, 3].map(function (n) { return $('sig' + n + 'Pad').dataset.url || ''; });
     return d;
   }
   var saveTimer = null;
@@ -1484,7 +1736,12 @@
         r.querySelector('[data-role="acao-quem"]').value = a.quem || '';
         r.querySelector('[data-role="acao-prazo"]').value = a.prazo || '';
         if (a.status) r.querySelector('[data-role="acao-status"]').value = a.status;
+        if (a.prio) r.querySelector('[data-role="acao-prio"]').value = a.prio;
+        if (a.item) { var sel = r.querySelector('[data-role="acao-item"]'); sel.dataset.want = a.item; }
+        if (a.photo) setAcaoPhoto(r, a.photo);
       });
+      (d.sigs || []).forEach(function (u, i) { setSigUrl(i + 1, u || ''); });
+      refreshLinks();
       updateResumo(); updateEmptyFlags();
     } finally { restoring = false; }
   }
@@ -1670,6 +1927,7 @@
     updateEmptyFlags();
     var slots = $('slotsContainer').querySelectorAll('.slot');
     for (var i = 0; i < slots.length; i++) syncStatusBadge(slots[i]);
+    buildPdfExtras();
     var arows = $('planoAcaoList').querySelectorAll('.acao-row');
     for (var ai = 0; ai < arows.length; ai++) {
       var vals = ['acao-oque', 'acao-quem', 'acao-prazo'].map(function (r) { return (arows[ai].querySelector('[data-role="' + r + '"]').value || '').trim(); });
@@ -1678,6 +1936,7 @@
     var ctrls = $('report').querySelectorAll('input[type="text"], input[type="date"], input[type="time"], textarea, select');
     for (var k = 0; k < ctrls.length; k++) {
       var c = ctrls[k], v = c.value || '';
+      if (c.closest('.sig-block') || c.closest('.acao-row')) continue;
       if (c.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(v)) v = v.slice(8, 10) + '/' + v.slice(5, 7) + '/' + v.slice(0, 4);
       var m = document.createElement('div');
       m.className = 'pdf-mirror' + (c.classList.contains('slot-title-input') ? ' pdf-mirror-title' : '') + (c.tagName === 'TEXTAREA' ? ' pdf-mirror-text' : '');
@@ -1973,29 +2232,26 @@
     var now = new Date();
     $('data').value = formatLocalDateInput(now);
     $('hora').value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
-    $('assinInspetorData').value = formatLocalDateInput(now);
-    $('assinResponsavelData').value = formatLocalDateInput(now);
+    ['sig1Data', 'sig2Data', 'sig3Data'].forEach(function (id) { $(id).value = formatLocalDateInput(now); });
 
     var num = genReportNumber();
     $('numRelatorio').value = num;
     $('headerNumBadge').textContent = num;
 
     if ($('inspetor').value) {
-      $('assinInspetor').value = $('inspetor').value;
+      $('sig1Nome').value = $('inspetor').value; $('sig1Nome').dataset.auto = '1';
     }
 
     loadCarimboCfg();
     ensureSlots(12);
 
     /* Start with 3 empty action rows so UI is obvious */
-    addAcao();
-    addAcao();
-    addAcao();
 
     updateResumo();
     updateEmptyFlags();
     syncOnline();
     syncLogo();
+    initPads();
     restoreDraft().then(function () { syncLogo(); updateDashboard(); });
   }
 
