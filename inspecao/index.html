@@ -7,8 +7,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Relatório de Inspeção de Rotina — Segurança do Trabalho</title>
   <!-- PDF libs (pinned). First use needs network; after that browser cache helps offline. -->
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" crossorigin="anonymous"></script>
+  <meta name="apple-mobile-web-app-title" content="Inspeção SST">
+  <meta name="theme-color" content="#0b5f2a">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="lib/jspdf.umd.min.js"></script>
   <style>
     :root {
       --primary: #0b5f2a;
@@ -569,6 +574,8 @@
       body { background: #fff; padding: 0; padding-bottom: 0; }
       section.card, .slot { box-shadow: none; }
     }
+      .offline-badge { display:none; background:#b00020; color:#fff; padding:2px 10px; border-radius:999px; font-size:.75rem; margin:8px 0 0 6px; }
+    body.is-offline .offline-badge { display:inline-block; }
   </style>
 </head>
 <body>
@@ -600,7 +607,7 @@
     <header class="doc-header">
       <h1>Relatório de Inspeção de Rotina — Segurança do Trabalho</h1>
       <p class="subtitle">SST · Checklist de campo</p>
-      <span class="badge-header" id="headerNumBadge">Nº —</span>
+      <span class="badge-header" id="headerNumBadge">Nº —</span><span class="offline-badge no-pdf" id="offlineBadge">Offline</span>
     </header>
 
     <section class="card" aria-labelledby="sec-ident">
@@ -704,6 +711,7 @@
     </div>
     <div class="toolbar-row">
       <button type="button" class="btn btn-secondary" id="btnPrintFallback">Abrir para imprimir</button>
+      <button type="button" class="btn btn-ghost" id="btnNovoRelatorio">Novo relatório</button>
     </div>
     <p class="toolbar-hint">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
   </div>
@@ -932,6 +940,7 @@
       if (fileInput) fileInput.value = '';
     }
     updateEmptyFlags();
+    scheduleSave();
   }
 
   /* ---------- Carimbo (estilo Instamp) ---------- */
@@ -974,7 +983,8 @@
   function reverseGeocode(g) {
     if (g.addr) return Promise.resolve(g.addr);
     var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + g.lat + '&lon=' + g.lon + '&accept-language=pt-BR&zoom=18&addressdetails=1';
-    return withTimeout(fetch(url, { headers: { 'Accept': 'application/json' } }), 6000)
+    if (navigator.onLine === false) return Promise.reject(new Error('offline'));
+    return withTimeout(fetch(url, { headers: { 'Accept': 'application/json' } }), 3000)
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (j) {
         var a = j.address || {};
@@ -1131,6 +1141,129 @@
   document.addEventListener('input', function (e) {
     if (e.target && e.target.id === 'carimboExtra') saveCarimboCfg();
   });
+
+  /* ---------- Rascunho automático (IndexedDB) ---------- */
+
+  var DB_NAME = 'inspecaoSST', DB_STORE = 'rascunho', DRAFT_KEY = 'atual';
+  function idb() {
+    return new Promise(function (res, rej) {
+      if (!window.indexedDB) return rej(new Error('sem IndexedDB'));
+      var r = indexedDB.open(DB_NAME, 1);
+      r.onupgradeneeded = function () { r.result.createObjectStore(DB_STORE); };
+      r.onsuccess = function () { res(r.result); };
+      r.onerror = function () { rej(r.error); };
+    });
+  }
+  function idbDo(mode, fn) {
+    return idb().then(function (db) {
+      return new Promise(function (res, rej) {
+        var tx = db.transaction(DB_STORE, mode), st = tx.objectStore(DB_STORE);
+        var req = fn(st);
+        tx.oncomplete = function () { db.close(); res(req && req.result); };
+        tx.onerror = function () { db.close(); rej(tx.error); };
+      });
+    });
+  }
+  var FORM_IDS = ['empresa','local','dataHora','inspetor','numRelatorio','assinInspetor','assinInspetorData','assinResponsavel','assinResponsavelData'];
+  var restoring = false;
+  function collectDraft() {
+    var d = { v: 1, savedAt: Date.now(), fields: {}, slots: [], acoes: [] };
+    FORM_IDS.forEach(function (id) { if ($(id)) d.fields[id] = $(id).value; });
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) {
+      var sl = slots[i];
+      d.slots.push({
+        title: sl.querySelector('[data-role="slot-title"]').value,
+        status: getSlotStatus(sl),
+        comment: sl.querySelector('[data-role="comment"]').value,
+        photo: sl.querySelector('[data-role="preview"]').getAttribute('src') || ''
+      });
+    }
+    var rows = $('planoAcaoList').querySelectorAll('.acao-row');
+    for (var j = 0; j < rows.length; j++) {
+      var r = rows[j];
+      d.acoes.push({
+        oque: r.querySelector('[data-role="acao-oque"]').value,
+        quem: r.querySelector('[data-role="acao-quem"]').value,
+        prazo: r.querySelector('[data-role="acao-prazo"]').value,
+        status: r.querySelector('[data-role="acao-status"]').value
+      });
+    }
+    return d;
+  }
+  var saveTimer = null;
+  function scheduleSave() {
+    if (restoring) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      var d = collectDraft();
+      idbDo('readwrite', function (st) { return st.put(d, DRAFT_KEY); }).catch(function (e) {
+        console.error(e);
+        showToast('Não foi possível salvar o rascunho (memória cheia?)');
+      });
+    }, 400);
+  }
+  function applyDraft(d) {
+    restoring = true;
+    try {
+      FORM_IDS.forEach(function (id) { if ($(id) && d.fields && id in d.fields) $(id).value = d.fields[id]; });
+      if (d.fields && d.fields.numRelatorio) $('headerNumBadge').textContent = 'Nº ' + d.fields.numRelatorio;
+      ensureSlots((d.slots || []).length);
+      var slots = $('slotsContainer').querySelectorAll('.slot');
+      (d.slots || []).forEach(function (sd, i) {
+        var sl = slots[i]; if (!sl) return;
+        sl.querySelector('[data-role="slot-title"]').value = sd.title || '';
+        sl.querySelector('[data-role="comment"]').value = sd.comment || '';
+        var btns = sl.querySelectorAll('[data-role="status"]');
+        for (var k = 0; k < btns.length; k++) btns[k].classList.toggle('active', btns[k].getAttribute('data-status') === sd.status);
+        syncStatusBadge(sl);
+        if (sd.photo) setSlotPhoto(sl, sd.photo);
+      });
+      $('planoAcaoList').innerHTML = '';
+      (d.acoes || []).forEach(function (a) {
+        var r = addAcao();
+        r.querySelector('[data-role="acao-oque"]').value = a.oque || '';
+        r.querySelector('[data-role="acao-quem"]').value = a.quem || '';
+        r.querySelector('[data-role="acao-prazo"]').value = a.prazo || '';
+        if (a.status) r.querySelector('[data-role="acao-status"]').value = a.status;
+      });
+      updateResumo(); updateEmptyFlags();
+    } finally { restoring = false; }
+  }
+  function restoreDraft() {
+    return idbDo('readonly', function (st) { return st.get(DRAFT_KEY); }).then(function (d) {
+      if (d && d.v === 1) { applyDraft(d); showToast('Rascunho restaurado'); }
+    }).catch(function (e) { console.warn('rascunho', e); });
+  }
+  document.addEventListener('input', scheduleSave);
+  document.addEventListener('change', scheduleSave);
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest('#btnNovoRelatorio')) {
+      e.preventDefault();
+      if (!confirm('Começar um novo relatório? O rascunho atual (textos e fotos) será apagado.')) return;
+      clearTimeout(saveTimer); restoring = true;
+      idbDo('readwrite', function (st) { return st.delete(DRAFT_KEY); }).catch(function () {}).then(function () { location.reload(); });
+      return;
+    }
+    setTimeout(scheduleSave, 0);
+  });
+
+  /* ---------- Offline / PWA ---------- */
+  function syncOnline() { document.body.classList.toggle('is-offline', navigator.onLine === false); }
+  window.addEventListener('online', syncOnline);
+  window.addEventListener('offline', syncOnline);
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    var hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (reg) {
+      reg.addEventListener('updatefound', function () {
+        var w = reg.installing; if (!w) return;
+        w.addEventListener('statechange', function () {
+          if (w.state === 'activated' && !hadController) showToast('Pronto para uso offline', 3500);
+        });
+      });
+    }).catch(function (e) { console.warn('SW', e); });
+  }
 
   /* ---------- Event delegation ---------- */
 
@@ -1583,6 +1716,8 @@
 
     updateResumo();
     updateEmptyFlags();
+    syncOnline();
+    restoreDraft();
   }
 
   if (document.readyState === 'loading') {
