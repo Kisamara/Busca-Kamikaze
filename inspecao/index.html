@@ -847,7 +847,8 @@
       <button type="button" class="btn btn-secondary" id="btnPrintFallback">Abrir para imprimir</button>
       <button type="button" class="btn btn-ghost" id="btnNovoRelatorio">Novo relatório</button>
     </div>
-    <p class="toolbar-hint">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
+    <p class="toolbar-hint" style="margin-bottom:2px">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
+    <p class="no-pdf app-version" id="appVersion" style="text-align:center;font-size:.72rem;color:#7a847a;margin:2px 0 0">Inspeção SST · v4</p>
   </div>
 
   <script>
@@ -1768,17 +1769,39 @@
   function syncOnline() { document.body.classList.toggle('is-offline', navigator.onLine === false); }
   window.addEventListener('online', syncOnline);
   window.addEventListener('offline', syncOnline);
+  var APP_VERSION = 'v4';
+  function flushDraftNow() {
+    clearTimeout(saveTimer);
+    try { return idbDo('readwrite', function (st) { return st.put(collectDraft(), DRAFT_KEY); }).catch(function () {}); }
+    catch (e) { return Promise.resolve(); }
+  }
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     var hadController = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register('sw.js', { scope: './' }).then(function (reg) {
+    var reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController) { hadController = true; return; } /* 1ª instalação: não recarrega */
+      if (reloading) return;
+      var last = 0; try { last = +sessionStorage.getItem('swReloadAt') || 0; } catch (e) {}
+      if (Date.now() - last < 15000) return; /* trava contra loop */
+      reloading = true;
+      try { sessionStorage.setItem('swReloadAt', String(Date.now())); sessionStorage.setItem('swUpdated', '1'); } catch (e) {}
+      flushDraftNow().then(function () { location.reload(); });
+    });
+    navigator.serviceWorker.register('sw.js', { scope: './', updateViaCache: 'none' }).then(function (reg) {
       reg.addEventListener('updatefound', function () {
         var w = reg.installing; if (!w) return;
         w.addEventListener('statechange', function () {
           if (w.state === 'activated' && !hadController) showToast('Pronto para uso offline', 3500);
         });
       });
+      function check() { if (navigator.onLine !== false) reg.update().catch(function () {}); }
+      check();
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') check(); });
+      window.addEventListener('online', check);
     }).catch(function (e) { console.warn('SW', e); });
   }
+  try { if (sessionStorage.getItem('swUpdated')) { sessionStorage.removeItem('swUpdated'); setTimeout(function () { showToast('App atualizado (' + APP_VERSION + ')', 3500); }, 1200); } } catch (e) {}
+
 
   /* ---------- Event delegation ---------- */
 
