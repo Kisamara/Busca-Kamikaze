@@ -576,6 +576,70 @@
     }
       .offline-badge { display:none; background:#b00020; color:#fff; padding:2px 10px; border-radius:999px; font-size:.75rem; margin:8px 0 0 6px; }
     body.is-offline .offline-badge { display:inline-block; }
+
+    /* ---- Dashboard layout (v3) ---- */
+    .dh { display:flex; align-items:center; gap:14px; padding:14px 16px; }
+    .dh-logo { flex:0 0 auto; width:96px; height:56px; background:#fff; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .dh-logo img { max-width:92px; max-height:52px; object-fit:contain; }
+    .dh-logo span { color:var(--primary-dark); font-weight:800; font-size:1.35rem; letter-spacing:.02em; }
+    .dh-title { flex:1; min-width:0; text-align:center; }
+    .dh-title h1 { font-size:1.15rem; margin:0; }
+    .dh-title .subtitle { font-size:.8rem; }
+    .dh-num { flex:0 0 auto; text-align:right; }
+    .dh-num small { display:block; font-size:.7rem; opacity:.9; }
+    .dh-num b { font-size:.95rem; white-space:nowrap; }
+    @media (max-width:520px) { .dh { flex-wrap:wrap; } .dh-title { order:3; flex-basis:100%; text-align:left; } .dh-num { margin-left:auto; } }
+    .logo-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .tiles { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
+    .tile { border-radius:10px; padding:8px 4px; text-align:center; border:1px solid var(--border); }
+    .tile .num { font-size:1.35rem; font-weight:800; line-height:1.2; }
+    .tile .lbl { font-size:.68rem; color:var(--muted); }
+    .tile.c { background:var(--ok-bg); border-color:#9fdcbc; } .tile.c .num { color:var(--ok); }
+    .tile.nc { background:var(--nc-bg); border-color:#f5b5b5; } .tile.nc .num { color:var(--nc); }
+    .tile.na { background:var(--na-bg); border-color:#cfd3da; } .tile.na .num { color:var(--na); }
+    .tile.nv { background:#f3f5f7; } .tile.nv .num { color:#6b7280; }
+    .tile.pct { background:var(--primary); border-color:var(--primary); } .tile.pct .num, .tile.pct .lbl { color:#fff; }
+    .dash { display:grid; grid-template-columns:1fr; gap:14px; align-items:center; }
+    @media (min-width:560px) { .dash { grid-template-columns:200px 1fr; } }
+    .donut-wrap { text-align:center; }
+    #donut { width:190px; height:190px; }
+    .bars h3 { font-size:.9rem; margin:0 0 8px; color:var(--primary-dark); }
+    .bar-row { display:grid; grid-template-columns:105px 1fr 62px; gap:8px; align-items:center; margin-bottom:10px; font-size:.82rem; font-weight:600; }
+    .bar-track { height:14px; background:#eef1ee; border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; width:0; border-radius:4px; }
+    .bar-val { text-align:right; font-weight:600; color:#333; white-space:nowrap; }
+    .dash-foot { font-size:.72rem; color:var(--muted); text-align:center; margin:6px 0 0; }
+    .slot-body { display:grid; grid-template-columns:1fr; gap:12px; }
+    @media (min-width:700px) { .slot-body.has-photo { grid-template-columns:1fr 1fr; } }
+    .status-badge-print { display:none; }
+    .status-badge-print.conforme, .status-badge-print.nao-conforme, .status-badge-print.nao-se-aplica { display:inline-block; padding:2px 12px; border-radius:6px; font-size:.78rem; font-weight:700; margin-bottom:8px; border:1px solid; text-align:left; }
+    .status-badge-print.conforme { background:var(--ok-bg); color:var(--ok); border-color:#9fdcbc; }
+    .status-badge-print.nao-conforme { background:var(--nc-bg); color:var(--nc); border-color:#f5b5b5; }
+    .status-badge-print.nao-se-aplica { background:var(--na-bg); color:var(--na); border-color:#cfd3da; }
+    .status-group + .field, .slot-main .status-badge-print:empty { }
+    /* PDF fixed A4 width */
+    body.pdf-mode #report { width:794px; max-width:none; margin:0; }
+    body.pdf-mode .grid-2 { grid-template-columns:1fr 1fr !important; }
+    body.pdf-mode .ident-grid { grid-template-columns:1fr 1fr !important; }
+    body.pdf-mode .dash { grid-template-columns:220px 1fr !important; }
+    body.pdf-mode .slot-body.has-photo { grid-template-columns:1fr 1fr !important; }
+    body.pdf-mode .dh { flex-wrap:nowrap !important; } body.pdf-mode .dh-title { order:0 !important; flex-basis:auto !important; text-align:center !important; }
+    body.pdf-mode input[type="text"], body.pdf-mode input[type="date"], body.pdf-mode input[type="time"], body.pdf-mode textarea, body.pdf-mode select {
+      border:none !important; padding:0 !important; min-height:0 !important; background:transparent !important; font-weight:600; resize:none; }
+    body.pdf-mode .slot-title-input { font-weight:700; color:var(--primary-dark); font-size:1rem; }
+    body.pdf-mode .slot-num::after { content:' —'; }
+    body.pdf-mode .slot .field-label { display:none; }
+    body.pdf-mode .photo-preview { max-height:300px; }
+    body.pdf-mode #secSlots { border:none; box-shadow:none; padding:0; background:transparent; }
+    .pdf-mirror { display:none; }
+    body.pdf-mode .pdf-hidden-ctrl { display:none !important; }
+    body.pdf-mode .pdf-mirror { display:block; font-weight:600; color:#1a1f1a; white-space:pre-wrap; word-break:break-word; }
+    body.pdf-mode .pdf-mirror-title { font-weight:700; color:var(--primary-dark); font-size:1rem; flex:1; }
+    body.pdf-mode .pdf-mirror-text { font-weight:400; font-size:.92rem; }
+    body.pdf-mode .slot .status-badge-print.conforme, body.pdf-mode .slot .status-badge-print.nao-conforme, body.pdf-mode .slot .status-badge-print.nao-se-aplica { display:inline-block !important; }
+    body.pdf-mode .slot .status-badge-print:empty { display:none !important; }
+    body.pdf-mode .slot-header { justify-content:flex-start; }
+    body.pdf-mode .acao-row.empty-omit { display:none !important; }
   </style>
 </head>
 <body>
@@ -604,54 +668,78 @@
   </div>
 
   <div id="report">
-    <header class="doc-header">
-      <h1>Relatório de Inspeção de Rotina — Segurança do Trabalho</h1>
-      <p class="subtitle">SST · Checklist de campo</p>
-      <span class="badge-header" id="headerNumBadge">Nº —</span><span class="offline-badge no-pdf" id="offlineBadge">Offline</span>
+    <header class="doc-header dh">
+      <div class="dh-logo" id="logoBox"><img id="logoImg" alt="Logo" style="display:none"><span id="logoInitials">AC</span></div>
+      <div class="dh-title">
+        <h1>Relatório de Inspeção de Rotina</h1>
+        <p class="subtitle">Segurança e Saúde no Trabalho (SST)</p>
+        <span class="offline-badge no-pdf" id="offlineBadge">Offline</span>
+      </div>
+      <div class="dh-num"><small>Nº do relatório</small><b id="headerNumBadge">—</b></div>
     </header>
 
     <section class="card" aria-labelledby="sec-ident">
-      <h2 id="sec-ident">Identificação</h2>
-      <div class="grid-2">
+      <h2 id="sec-ident" class="no-pdf">Identificação</h2>
+      <div class="grid-2 ident-grid">
         <div class="field">
-          <label class="field-label" for="empresa">Empresa / Unidade</label>
-          <input type="text" id="empresa" name="empresa" autocomplete="organization" placeholder="Nome da empresa ou unidade">
+          <label class="field-label" for="empresa">Empresa</label>
+          <input type="text" id="empresa" name="empresa" autocomplete="organization" placeholder="Nome da empresa">
         </div>
         <div class="field">
-          <label class="field-label" for="local">Local / Setor</label>
-          <input type="text" id="local" name="local" placeholder="Área, setor ou local inspecionado">
+          <label class="field-label" for="local">Obra / Setor / Local</label>
+          <input type="text" id="local" name="local" placeholder="Obra, setor ou local inspecionado">
         </div>
         <div class="field">
-          <label class="field-label" for="dataHora">Data e hora</label>
-          <input type="datetime-local" id="dataHora" name="dataHora">
+          <label class="field-label" for="inspetor">Responsável pela inspeção (técnico)</label>
+          <input type="text" id="inspetor" name="inspetor" placeholder="Nome do técnico" value="Valdir Júnior">
         </div>
         <div class="field">
-          <label class="field-label" for="inspetor">Inspetor</label>
-          <input type="text" id="inspetor" name="inspetor" placeholder="Nome do inspetor" value="Valdir Júnior">
+          <label class="field-label" for="respArea">Responsável da área</label>
+          <input type="text" id="respArea" name="respArea" placeholder="Nome e função">
         </div>
         <div class="field">
+          <label class="field-label" for="data">Data</label>
+          <input type="date" id="data" name="data">
+        </div>
+        <div class="field">
+          <label class="field-label" for="hora">Hora</label>
+          <input type="time" id="hora" name="hora">
+        </div>
+        <div class="field no-pdf">
           <label class="field-label" for="numRelatorio">Número do relatório</label>
           <input type="text" id="numRelatorio" name="numRelatorio" placeholder="Auto">
+        </div>
+        <div class="field no-pdf">
+          <label class="field-label">Logo da empresa</label>
+          <div class="logo-actions">
+            <button type="button" class="btn btn-secondary" id="btnLogo" style="flex:1;min-height:44px">Escolher logo</button>
+            <button type="button" class="btn btn-danger" id="btnLogoDel" style="min-height:44px">Remover</button>
+          </div>
+          <input type="file" id="logoFile" accept="image/*" class="file-input-hidden">
         </div>
       </div>
     </section>
 
-    <section class="card" aria-labelledby="sec-resumo">
-      <h2 id="sec-resumo">Resumo</h2>
-      <div class="resumo-grid">
-        <div class="resumo-item">
-          <div class="num" id="countConforme">0</div>
-          <div class="lbl">Conformes</div>
-        </div>
-        <div class="resumo-item nc">
-          <div class="num" id="countNaoConforme">0</div>
-          <div class="lbl">Não conformes</div>
-        </div>
-        <div class="resumo-item na">
-          <div class="num" id="countNA">0</div>
-          <div class="lbl">Não se aplica</div>
+    <section class="card" aria-labelledby="sec-resumo" id="secResumo">
+      <h2 id="sec-resumo">Resumo da inspeção</h2>
+      <div class="tiles">
+        <div class="tile c"><div class="num" id="countConforme">0</div><div class="lbl">Conforme</div></div>
+        <div class="tile nc"><div class="num" id="countNaoConforme">0</div><div class="lbl">Não conforme</div></div>
+        <div class="tile na"><div class="num" id="countNA">0</div><div class="lbl">Não se aplica</div></div>
+        <div class="tile nv"><div class="num" id="countNaoAval">0</div><div class="lbl">Não avaliados</div></div>
+        <div class="tile pct"><div class="num" id="pctConf">—</div><div class="lbl">Conformidade</div></div>
+      </div>
+      <div class="dash">
+        <div class="donut-wrap"><canvas id="donut" width="400" height="400"></canvas></div>
+        <div class="bars">
+          <h3>Itens por status</h3>
+          <div class="bar-row"><span>Conforme</span><div class="bar-track"><div class="bar-fill" id="barC" style="background:#16a34a"></div></div><span class="bar-val" id="valC">0</span></div>
+          <div class="bar-row"><span>Não conforme</span><div class="bar-track"><div class="bar-fill" id="barNC" style="background:#dc2626"></div></div><span class="bar-val" id="valNC">0</span></div>
+          <div class="bar-row"><span>Não se aplica</span><div class="bar-track"><div class="bar-fill" id="barNA" style="background:#9ca3af"></div></div><span class="bar-val" id="valNA">0</span></div>
+          <div class="bar-row"><span>Não avaliados</span><div class="bar-track"><div class="bar-fill" id="barNV" style="background:#cbd5e1"></div></div><span class="bar-val" id="valNV">0</span></div>
         </div>
       </div>
+      <p class="dash-foot" id="dashFoot">Conformidade = Conforme ÷ (Conforme + Não conforme) · 0 itens avaliados</p>
     </section>
 
     <section class="card no-pdf" aria-labelledby="sec-carimbo">
@@ -668,16 +756,16 @@
       <p class="hint">A localização precisa de HTTPS (o link trycloudflare funciona) e da permissão de GPS no navegador.</p>
     </section>
 
-    <section class="card" aria-labelledby="sec-slots">
+    <section class="card" aria-labelledby="sec-slots" id="secSlots">
       <h2 id="sec-slots">Itens inspecionados</h2>
-      <p class="hint">Toque no status, registre comentários e anexe foto (câmera ou galeria). Slots vazios não entram no PDF.</p>
+      <p class="hint no-pdf">Toque no status, registre comentários e anexe foto (câmera ou galeria). Slots vazios não entram no PDF.</p>
       <div id="slotsContainer"></div>
       <button type="button" class="btn btn-ghost btn-block no-pdf" id="btnAddSlot" style="margin-top:8px">+ Adicionar slot</button>
     </section>
 
     <section class="card" aria-labelledby="sec-acao">
       <h2 id="sec-acao">Plano de ação</h2>
-      <p class="hint">Registre ações corretivas/preventivas. Use o botão abaixo para novas linhas.</p>
+      <p class="hint no-pdf">Registre ações corretivas/preventivas. Use o botão abaixo para novas linhas.</p>
       <div id="planoAcaoList"></div>
       <button type="button" class="btn btn-secondary btn-block no-pdf" id="btnAddAcao" style="margin-top:4px">+ Adicionar ação</button>
     </section>
@@ -779,11 +867,12 @@
     el.dataset.slot = String(n);
     el.innerHTML =
       '<div class="slot-header">' +
-        '<span class="slot-num">Slot ' + n + '</span>' +
+        '<span class="slot-num">Item ' + n + '</span>' +
         '<input type="text" class="slot-title-input" data-role="slot-title" placeholder="Item / ponto inspecionado (opcional)" aria-label="Título do slot ' + n + '">' +
       '</div>' +
+      '<div class="slot-body" data-role="slot-body"><div class="slot-main">' +
       '<div class="status-badge-print" data-role="status-badge"></div>' +
-      '<div class="status-group no-pdf" role="group" aria-label="Status do slot ' + n + '">' +
+      '<div class="status-group no-pdf" role="group" aria-label="Status do item ' + n + '">' +
         '<button type="button" class="status-btn" data-role="status" data-status="conforme">Conforme</button>' +
         '<button type="button" class="status-btn" data-role="status" data-status="nao-conforme">Não conforme</button>' +
         '<button type="button" class="status-btn" data-role="status" data-status="nao-se-aplica">Não se aplica</button>' +
@@ -791,6 +880,7 @@
       '<div class="field">' +
         '<label class="field-label">Comentários</label>' +
         '<textarea data-role="comment" placeholder="Observações, riscos, detalhes…" rows="3"></textarea>' +
+      '</div>' +
       '</div>' +
       '<div class="photo-area">' +
         '<label class="field-label">Foto</label>' +
@@ -802,7 +892,7 @@
           '<button type="button" class="btn btn-danger" data-role="remove-photo" style="display:none">Remover foto</button>' +
         '</div>' +
         '<input type="file" class="file-input-hidden" data-role="file" accept="image/*" capture="environment">' +
-      '</div>';
+      '</div></div>';
     return el;
   }
 
@@ -828,10 +918,12 @@
     var status = getSlotStatus(slotEl);
     var comment = (slotEl.querySelector('[data-role="comment"]').value || '').trim();
     var hasPhoto = !!slotEl.querySelector('[data-role="preview"]').getAttribute('src');
-    return !status && !comment && !hasPhoto;
+    var title = (slotEl.querySelector('[data-role="slot-title"]').value || '').trim();
+    return !status && !comment && !hasPhoto && !title;
   }
 
   function updateEmptyFlags() {
+    setTimeout(updateDashboard, 0);
     var slots = $('slotsContainer').querySelectorAll('.slot');
     for (var i = 0; i < slots.length; i++) {
       if (isSlotEmpty(slots[i])) {
@@ -866,6 +958,7 @@
     $('countConforme').textContent = String(c);
     $('countNaoConforme').textContent = String(nc);
     $('countNA').textContent = String(na);
+    updateDashboard();
   }
 
   /* ---------- Plano de ação ---------- */
@@ -931,10 +1024,12 @@
     if (dataUrl) {
       img.src = dataUrl;
       wrap.classList.add('has-photo');
+      slotEl.querySelector('[data-role="slot-body"]').classList.add('has-photo');
       btnRemove.style.display = '';
     } else {
       img.removeAttribute('src');
       wrap.classList.remove('has-photo');
+      slotEl.querySelector('[data-role="slot-body"]').classList.remove('has-photo');
       btnRemove.style.display = 'none';
       var fileInput = slotEl.querySelector('[data-role="file"]');
       if (fileInput) fileInput.value = '';
@@ -1142,6 +1237,169 @@
     if (e.target && e.target.id === 'carimboExtra') saveCarimboCfg();
   });
 
+  /* ---------- Dashboard ---------- */
+  function fmtPct(x, dec) { return x.toFixed(dec).replace('.', ','); }
+  function dashCounts() {
+    var r = { c: 0, nc: 0, na: 0, nv: 0 };
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) {
+      var st = getSlotStatus(slots[i]);
+      if (st === 'conforme') r.c++; else if (st === 'nao-conforme') r.nc++; else if (st === 'nao-se-aplica') r.na++;
+      else if (!isSlotEmpty(slots[i]) || (slots[i].querySelector('[data-role="slot-title"]').value || '').trim()) r.nv++;
+    }
+    return r;
+  }
+  function drawDonut(k, pctTxt) {
+    var cv = $('donut'); if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext('2d'), W = cv.width, cx = W / 2, R = W * 0.44, r = W * 0.29;
+    ctx.clearRect(0, 0, W, W);
+    var segs = [[k.c, '#16a34a'], [k.nc, '#dc2626'], [k.na, '#9ca3af'], [k.nv, '#cbd5e1']];
+    var tot = k.c + k.nc + k.na + k.nv;
+    if (!tot) { ctx.beginPath(); ctx.arc(cx, cx, (R + r) / 2, 0, Math.PI * 2); ctx.lineWidth = R - r; ctx.strokeStyle = '#e5e7eb'; ctx.stroke(); }
+    var a = -Math.PI / 2;
+    segs.forEach(function (sg) {
+      if (!sg[0]) return;
+      var b = a + sg[0] / tot * Math.PI * 2;
+      ctx.beginPath(); ctx.arc(cx, cx, R, a, b); ctx.arc(cx, cx, r, b, a, true); ctx.closePath();
+      ctx.fillStyle = sg[1]; ctx.fill();
+      ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.stroke();
+      var m = (a + b) / 2, rr = (R + r) / 2;
+      ctx.fillStyle = sg[1] === '#cbd5e1' ? '#334155' : '#fff';
+      ctx.font = 'bold ' + Math.round(W * 0.06) + 'px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(sg[0]), cx + Math.cos(m) * rr, cx + Math.sin(m) * rr);
+      a = b;
+    });
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#b45309'; ctx.font = 'bold ' + Math.round(W * 0.12) + 'px Arial';
+    ctx.fillText(pctTxt, cx, cx - W * 0.03);
+    ctx.fillStyle = '#4b5563'; ctx.font = Math.round(W * 0.055) + 'px Arial';
+    ctx.fillText('conformidade', cx, cx + W * 0.08);
+  }
+  function updateDashboard() {
+    if (!$('countNaoAval')) return;
+    var k = dashCounts(), tot = k.c + k.nc + k.na + k.nv, aval = k.c + k.nc + k.na;
+    $('countConforme').textContent = k.c; $('countNaoConforme').textContent = k.nc;
+    $('countNA').textContent = k.na; $('countNaoAval').textContent = k.nv;
+    var pctTxt = (k.c + k.nc) ? fmtPct(k.c / (k.c + k.nc) * 100, 1) + '%' : '—';
+    $('pctConf').textContent = pctTxt;
+    [['C', k.c], ['NC', k.nc], ['NA', k.na], ['NV', k.nv]].forEach(function (x) {
+      var p = tot ? x[1] / tot * 100 : 0;
+      $('bar' + x[0]).style.width = p + '%';
+      $('val' + x[0]).textContent = x[1] + ' (' + Math.round(p) + '%)';
+    });
+    $('dashFoot').textContent = 'Conformidade = Conforme ÷ (Conforme + Não conforme) · ' + aval + (aval === 1 ? ' item avaliado' : ' itens avaliados');
+    drawDonut(k, pctTxt);
+  }
+
+  /* ---------- Logo ---------- */
+  var LOGO_KEY = 'inspecaoLogo_v1';
+  function initialsFrom(name) {
+    var w = String(name || '').trim().split(/\s+/).filter(function (x) { return x.length > 2 || /^[A-Z]/.test(x); });
+    if (!w.length) return 'AC';
+    return (w[0][0] + (w[1] ? w[1][0] : (w[0][1] || ''))).toUpperCase();
+  }
+  function syncLogo() {
+    var url = ''; try { url = localStorage.getItem(LOGO_KEY) || ''; } catch (e) {}
+    var img = $('logoImg'), sp = $('logoInitials');
+    if (url) { img.src = url; img.style.display = ''; sp.style.display = 'none'; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; sp.style.display = ''; sp.textContent = initialsFrom($('empresa').value); }
+    $('btnLogoDel').style.display = url ? '' : 'none';
+  }
+  function setLogoFromFile(file) {
+    return loadBitmap(file).then(function (src) {
+      var sw = src.width || src.naturalWidth, sh = src.height || src.naturalHeight;
+      var sc = Math.min(1, 400 / sw, 240 / sh);
+      var c = document.createElement('canvas'); c.width = Math.round(sw * sc); c.height = Math.round(sh * sc);
+      c.getContext('2d').drawImage(src, 0, 0, c.width, c.height);
+      localStorage.setItem(LOGO_KEY, c.toDataURL('image/png'));
+      syncLogo(); showToast('Logo salvo');
+    }).catch(function () { showToast('Não foi possível usar esta imagem'); });
+  }
+  document.addEventListener('click', function (e) {
+    var t = e.target; if (!t || !t.closest) return;
+    if (t.closest('#btnLogo')) { e.preventDefault(); $('logoFile').click(); }
+    else if (t.closest('#btnLogoDel')) { e.preventDefault(); try { localStorage.removeItem(LOGO_KEY); } catch (x) {} syncLogo(); }
+  });
+  document.addEventListener('change', function (e) {
+    if (e.target && e.target.id === 'logoFile' && e.target.files && e.target.files[0]) { setLogoFromFile(e.target.files[0]); e.target.value = ''; }
+  });
+  document.addEventListener('input', function (e) {
+    if (!e.target) return;
+    if (e.target.id === 'empresa') syncLogo();
+    if (e.target.id === 'respArea' && $('assinResponsavel') && (!$('assinResponsavel').value || $('assinResponsavel').dataset.auto === '1')) {
+      $('assinResponsavel').value = e.target.value; $('assinResponsavel').dataset.auto = '1';
+    }
+  });
+
+  /* ---------- PDF paginado ---------- */
+  async function gerarPdfPaginado() {
+    setLoading(true, 'Gerando PDF…');
+    var ok = await waitForLibs(8000);
+    var JsPDF = ok && getJsPdf();
+    if (!JsPDF) { setLoading(false); showToast('Biblioteca PDF indisponível. Use “Abrir para imprimir”.'); return; }
+    prepararParaCaptura();
+    updateDashboard();
+    await new Promise(function (r) { setTimeout(r, 250); });
+    var reportEl = $('report'), filename = pdfFilename();
+    try {
+      var rr = reportEl.getBoundingClientRect();
+      /* candidatos de quebra: topo de cada card e de cada item (menos o 1º item, que fica com o título) */
+      var cands = [];
+      var els = reportEl.querySelectorAll('section.card, .slot, .acao-row');
+      var firstSlot = true, firstAcao = true;
+      for (var i = 0; i < els.length; i++) {
+        var el = els[i];
+        if (!el.offsetParent && el.offsetHeight === 0) continue;
+        if (el.classList.contains('slot')) { if (firstSlot) { firstSlot = false; continue; } }
+        if (el.classList.contains('acao-row')) { if (el.classList.contains('empty-omit')) continue; if (firstAcao) { firstAcao = false; continue; } }
+        cands.push(el.getBoundingClientRect().top - rr.top - 6);
+      }
+      var canvas = await window.html2canvas(reportEl, {
+        scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, imageTimeout: 15000,
+        windowWidth: Math.max(900, document.documentElement.clientWidth),
+        onclone: function (doc) { doc.body.classList.add('pdf-mode'); }
+      });
+      var pxPerCss = canvas.width / rr.width;
+      cands = cands.map(function (y) { return Math.round(y * pxPerCss); }).filter(function (y) { return y > 0; }).sort(function (a, b) { return a - b; });
+
+      var pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var PW = pdf.internal.pageSize.getWidth(), PH = pdf.internal.pageSize.getHeight();
+      var margin = 8, footer = 9, usableW = PW - margin * 2, usableH = PH - margin * 2 - footer;
+      var pagePx = Math.floor(usableH * canvas.width / usableW);
+      var slices = [], y0 = 0;
+      while (y0 < canvas.height - 4) {
+        var limit = y0 + pagePx, cut = limit;
+        if (limit < canvas.height) {
+          var best = -1;
+          for (var j = 0; j < cands.length; j++) if (cands[j] > y0 + pagePx * 0.25 && cands[j] <= limit) best = cands[j];
+          if (best > 0) cut = best;
+        } else cut = canvas.height;
+        slices.push([y0, cut]); y0 = cut;
+      }
+      var emp = ($('empresa').value || '').trim(), num = ($('numRelatorio').value || '').trim();
+      var foot = 'Relatório de Inspeção de Rotina · Nº ' + (num || '—') + (emp ? ' · ' + emp : '');
+      slices.forEach(function (sl, idx) {
+        var h = sl[1] - sl[0];
+        var pc = document.createElement('canvas'); pc.width = canvas.width; pc.height = h;
+        var pctx = pc.getContext('2d'); pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, pc.width, h);
+        pctx.drawImage(canvas, 0, sl[0], canvas.width, h, 0, 0, canvas.width, h);
+        if (idx) pdf.addPage();
+        pdf.addImage(pc.toDataURL('image/jpeg', 0.9), 'JPEG', margin, margin, usableW, h * usableW / canvas.width);
+        pdf.setDrawColor(200); pdf.setLineWidth(0.2); pdf.line(margin, PH - margin - 5, PW - margin, PH - margin - 5);
+        pdf.setFontSize(8); pdf.setTextColor(90);
+        pdf.text(foot, margin, PH - margin);
+        pdf.text('Página ' + (idx + 1) + ' de ' + slices.length, PW - margin, PH - margin, { align: 'right' });
+      });
+      var blob = pdf.output('blob');
+      limparCaptura(); setLoading(false);
+      presentPdfResult(blob, filename);
+    } catch (err) {
+      limparCaptura(); setLoading(false); console.error(err);
+      showToast('Falha ao gerar PDF. Tente “Abrir para imprimir”.');
+    }
+  }
+  window.__gerarPdfPaginado = gerarPdfPaginado;
+
   /* ---------- Rascunho automático (IndexedDB) ---------- */
 
   var DB_NAME = 'inspecaoSST', DB_STORE = 'rascunho', DRAFT_KEY = 'atual';
@@ -1164,7 +1422,7 @@
       });
     });
   }
-  var FORM_IDS = ['empresa','local','dataHora','inspetor','numRelatorio','assinInspetor','assinInspetorData','assinResponsavel','assinResponsavelData'];
+  var FORM_IDS = ['empresa','local','data','hora','respArea','inspetor','numRelatorio','assinInspetor','assinInspetorData','assinResponsavel','assinResponsavelData'];
   var restoring = false;
   function collectDraft() {
     var d = { v: 1, savedAt: Date.now(), fields: {}, slots: [], acoes: [] };
@@ -1207,7 +1465,7 @@
     restoring = true;
     try {
       FORM_IDS.forEach(function (id) { if ($(id) && d.fields && id in d.fields) $(id).value = d.fields[id]; });
-      if (d.fields && d.fields.numRelatorio) $('headerNumBadge').textContent = 'Nº ' + d.fields.numRelatorio;
+      if (d.fields && d.fields.numRelatorio) $('headerNumBadge').textContent = d.fields.numRelatorio;
       ensureSlots((d.slots || []).length);
       var slots = $('slotsContainer').querySelectorAll('.slot');
       (d.slots || []).forEach(function (sd, i) {
@@ -1332,7 +1590,7 @@
     /* Gerar PDF */
     if (t.closest('#btnGerarPdf')) {
       e.preventDefault();
-      gerarPdf();
+      gerarPdfPaginado();
       return;
     }
 
@@ -1399,7 +1657,7 @@
     var t = e.target;
     if (!t) return;
     if (t.id === 'numRelatorio') {
-      $('headerNumBadge').textContent = 'Nº ' + (t.value || '—');
+      $('headerNumBadge').textContent = (t.value || '—');
     }
     if (t.getAttribute('data-role') === 'comment') {
       updateEmptyFlags();
@@ -1412,16 +1670,35 @@
     updateEmptyFlags();
     var slots = $('slotsContainer').querySelectorAll('.slot');
     for (var i = 0; i < slots.length; i++) syncStatusBadge(slots[i]);
+    var arows = $('planoAcaoList').querySelectorAll('.acao-row');
+    for (var ai = 0; ai < arows.length; ai++) {
+      var vals = ['acao-oque', 'acao-quem', 'acao-prazo'].map(function (r) { return (arows[ai].querySelector('[data-role="' + r + '"]').value || '').trim(); });
+      arows[ai].classList.toggle('empty-omit', !vals.join(''));
+    }
+    var ctrls = $('report').querySelectorAll('input[type="text"], input[type="date"], input[type="time"], textarea, select');
+    for (var k = 0; k < ctrls.length; k++) {
+      var c = ctrls[k], v = c.value || '';
+      if (c.type === 'date' && /^\d{4}-\d{2}-\d{2}$/.test(v)) v = v.slice(8, 10) + '/' + v.slice(5, 7) + '/' + v.slice(0, 4);
+      var m = document.createElement('div');
+      m.className = 'pdf-mirror' + (c.classList.contains('slot-title-input') ? ' pdf-mirror-title' : '') + (c.tagName === 'TEXTAREA' ? ' pdf-mirror-text' : '');
+      m.textContent = v || (c.tagName === 'TEXTAREA' || c.classList.contains('slot-title-input') ? '' : '—');
+      c.classList.add('pdf-hidden-ctrl');
+      c.parentNode.insertBefore(m, c.nextSibling);
+    }
     document.body.classList.add('pdf-mode');
   }
 
   function limparCaptura() {
+    var ms = document.querySelectorAll('.pdf-mirror');
+    for (var k = 0; k < ms.length; k++) ms[k].parentNode.removeChild(ms[k]);
+    var hc = document.querySelectorAll('.pdf-hidden-ctrl');
+    for (var q = 0; q < hc.length; q++) hc[q].classList.remove('pdf-hidden-ctrl');
     document.body.classList.remove('pdf-mode');
   }
 
   function pdfFilename() {
     var d = new Date();
-    var raw = $('dataHora').value;
+    var raw = $('data').value;
     if (raw && raw.length >= 10) {
       return 'inspecao-rotina-' + raw.slice(0, 10) + '.pdf';
     }
@@ -1694,13 +1971,14 @@
 
   function init() {
     var now = new Date();
-    $('dataHora').value = formatLocalDateTimeInput(now);
+    $('data').value = formatLocalDateInput(now);
+    $('hora').value = pad2(now.getHours()) + ':' + pad2(now.getMinutes());
     $('assinInspetorData').value = formatLocalDateInput(now);
     $('assinResponsavelData').value = formatLocalDateInput(now);
 
     var num = genReportNumber();
     $('numRelatorio').value = num;
-    $('headerNumBadge').textContent = 'Nº ' + num;
+    $('headerNumBadge').textContent = num;
 
     if ($('inspetor').value) {
       $('assinInspetor').value = $('inspetor').value;
@@ -1717,7 +1995,8 @@
     updateResumo();
     updateEmptyFlags();
     syncOnline();
-    restoreDraft();
+    syncLogo();
+    restoreDraft().then(function () { syncLogo(); updateDashboard(); });
   }
 
   if (document.readyState === 'loading') {
