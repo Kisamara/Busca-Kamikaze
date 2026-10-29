@@ -848,7 +848,7 @@
       <button type="button" class="btn btn-ghost" id="btnNovoRelatorio">Novo relatório</button>
     </div>
     <p class="toolbar-hint" style="margin-bottom:2px">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
-    <p class="no-pdf app-version" id="appVersion" style="text-align:center;font-size:.72rem;color:#7a847a;margin:2px 0 0">Inspeção SST · v4</p>
+    <p class="no-pdf app-version" id="appVersion" style="text-align:center;font-size:.72rem;color:#7a847a;margin:2px 0 0">Inspeção SST · v5</p>
   </div>
 
   <script>
@@ -1404,6 +1404,60 @@
   });
 
   /* ---------- PDF paginado ---------- */
+
+  /* ---------- Dados embutidos no PDF (para a planilha consolidada) ---------- */
+  var STATUS_TXT = { 'conforme': 'Conforme', 'nao-conforme': 'Não conforme', 'nao-se-aplica': 'Não se aplica' };
+  function buildReportData() {
+    var k = dashCounts();
+    var d = {
+      schema: 'inspecao-sst', schemaVersion: 1, appVersion: APP_VERSION, geradoEm: new Date().toISOString(),
+      numero: ($('numRelatorio').value || '').trim(), empresa: ($('empresa').value || '').trim(),
+      local: ($('local').value || '').trim(), data: $('data') ? $('data').value : '', hora: $('hora') ? $('hora').value : '',
+      inspetor: ($('inspetor').value || '').trim(), respArea: $('respArea') ? ($('respArea').value || '').trim() : '',
+      contagem: { conforme: k.c, naoConforme: k.nc, naoSeAplica: k.na, naoAvaliado: k.nv },
+      conformidadePct: (k.c + k.nc) ? Math.round(k.c / (k.c + k.nc) * 1000) / 10 : null,
+      itens: [], acoes: [], assinaturas: []
+    };
+    var slots = $('slotsContainer').querySelectorAll('.slot');
+    for (var i = 0; i < slots.length; i++) {
+      var sl = slots[i];
+      var title = (sl.querySelector('[data-role="slot-title"]').value || '').trim(), st = getSlotStatus(sl);
+      if (isSlotEmpty(sl) && !title && !st) continue;
+      d.itens.push({ numero: Number(sl.dataset.slot) || sl.dataset.slot, titulo: title, status: STATUS_TXT[st] || 'Não avaliado',
+        comentario: (sl.querySelector('[data-role="comment"]').value || '').trim(),
+        temFoto: !!sl.querySelector('[data-role="preview"]').getAttribute('src') });
+    }
+    var rows = $('planoAcaoList').querySelectorAll('.acao-row');
+    for (var j = 0; j < rows.length; j++) {
+      var a = acaoData(rows[j]);
+      if (!a.oque && !a.quem && !a.prazo && !a.photo && !a.item) continue;
+      var src = a.item ? slotByNum(a.item) : null;
+      d.acoes.push({ numero: d.acoes.length + 1, item: a.item ? Number(a.item) : null,
+        itemTitulo: src ? (src.querySelector('[data-role="slot-title"]').value || '').trim() : '',
+        oque: a.oque, quem: a.quem, prazo: a.prazo, prioridade: a.prio, status: a.status, temFotoDepois: !!a.photo });
+    }
+    var roles = ['Inspetor (executante)', 'Responsável pela inspeção', 'Inspecionado (responsável da área)'];
+    [1, 2, 3].forEach(function (n) {
+      d.assinaturas.push({ papel: roles[n - 1], nome: ($('sig' + n + 'Nome').value || '').trim(), cargo: ($('sig' + n + 'Cargo').value || '').trim(),
+        data: $('sig' + n + 'Data').value || '', assinada: !!$('sig' + n + 'Pad').dataset.url });
+    });
+    return d;
+  }
+  function b64utf8(str) {
+    var bytes = new TextEncoder().encode(str), bin = '';
+    for (var i = 0; i < bytes.length; i += 8192) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    return btoa(bin);
+  }
+  function embedReportData(pdf) {
+    try {
+      var d = buildReportData();
+      pdf.setProperties({ title: 'Relatório de Inspeção Nº ' + (d.numero || '—') + (d.empresa ? ' · ' + d.empresa : ''),
+        subject: 'Relatório de Inspeção de Rotina — Segurança do Trabalho', author: d.inspetor || '', creator: 'Inspeção SST ' + APP_VERSION,
+        keywords: 'INSPSSTv1:' + b64utf8(JSON.stringify(d)) });
+    } catch (e) { console.warn('dados embutidos', e); }
+  }
+  window.__buildReportData = buildReportData;
+
   async function gerarPdfPaginado() {
     setLoading(true, 'Gerando PDF…');
     var ok = await waitForLibs(8000);
@@ -1463,6 +1517,7 @@
         pdf.text(foot, margin, PH - margin);
         pdf.text('Página ' + (idx + 1) + ' de ' + slices.length, PW - margin, PH - margin, { align: 'right' });
       });
+      embedReportData(pdf);
       var blob = pdf.output('blob');
       limparCaptura(); setLoading(false);
       presentPdfResult(blob, filename);
@@ -1769,7 +1824,7 @@
   function syncOnline() { document.body.classList.toggle('is-offline', navigator.onLine === false); }
   window.addEventListener('online', syncOnline);
   window.addEventListener('offline', syncOnline);
-  var APP_VERSION = 'v4';
+  var APP_VERSION = 'v5';
   function flushDraftNow() {
     clearTimeout(saveTimer);
     try { return idbDo('readwrite', function (st) { return st.put(collectDraft(), DRAFT_KEY); }).catch(function () {}); }
@@ -2236,6 +2291,7 @@
         heightLeft -= (pageHeight - margin * 2);
       }
 
+      embedReportData(pdf);
       var blob = pdf.output('blob');
       limparCaptura();
       setLoading(false);
