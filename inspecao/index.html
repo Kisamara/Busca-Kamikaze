@@ -573,7 +573,14 @@
       .slot.empty-omit { display: none !important; }
       body { background: #fff; padding: 0; padding-bottom: 0; }
       section.card, .slot { box-shadow: none; }
+      /* v6: nada de foto/item cortado entre páginas na impressão */
+      body.pdf-mode #report { width: auto !important; }
+      .slot, tr, img, .pdf-sig-grid, .dh, #secResumo, #secAssin, section.card:not(#secSlots):not(#secAcoes) { break-inside: avoid; page-break-inside: avoid; }
+      h2 { break-after: avoid; page-break-after: avoid; }
+      thead { display: table-header-group; }
+      img { max-width: 100%; }
     }
+    @page { size: A4; margin: 10mm; }
       .offline-badge { display:none; background:#b00020; color:#fff; padding:2px 10px; border-radius:999px; font-size:.75rem; margin:8px 0 0 6px; }
     body.is-offline .offline-badge { display:inline-block; }
 
@@ -630,6 +637,9 @@
     body.pdf-mode .slot-num::after { content:' —'; }
     body.pdf-mode .slot .field-label { display:none; }
     body.pdf-mode .photo-preview { max-height:300px; }
+    /* v6: html2canvas ignora object-fit — no PDF a foto usa o tamanho proporcional (sem esticar/cortar) */
+    body.pdf-mode .photo-preview { width:auto !important; height:auto !important; max-width:100% !important; display:block; margin:0 auto; background:transparent; }
+    body.pdf-mode table.pdf-acoes img { width:auto !important; height:auto !important; max-width:74px; max-height:56px; }
     body.pdf-mode #secSlots { border:none; box-shadow:none; padding:0; background:transparent; }
     .pdf-mirror { display:none; }
     body.pdf-mode .pdf-hidden-ctrl { display:none !important; }
@@ -848,7 +858,7 @@
       <button type="button" class="btn btn-ghost" id="btnNovoRelatorio">Novo relatório</button>
     </div>
     <p class="toolbar-hint" style="margin-bottom:2px">Após gerar, use Compartilhar ou Abrir PDF no painel. No iPhone, o compartilhar do Safari também funciona com Abrir PDF.</p>
-    <p class="no-pdf app-version" id="appVersion" style="text-align:center;font-size:.72rem;color:#7a847a;margin:2px 0 0">Inspeção SST · v5</p>
+    <p class="no-pdf app-version" id="appVersion" style="text-align:center;font-size:.72rem;color:#7a847a;margin:2px 0 0">Inspeção SST · v6</p>
   </div>
 
   <script>
@@ -1458,6 +1468,102 @@
   }
   window.__buildReportData = buildReportData;
 
+  /* v6: PDF por blocos — cada bloco (cabeçalho, cards, cada item com foto, linhas do plano de ação)
+     é capturado separadamente (canvas pequeno, seguro no iPhone) e montado nas páginas A4 sem cortar nada. */
+  var PDF_MAX_AREA = 4000000;   /* px por canvas (limite do iOS ~16,7M; folga para memória) */
+  var PDF_CHUNK_CSS = 1000;     /* altura máx. (px CSS) por captura de bloco fatiável */
+  function capturarBloco(el, y0, h) {
+    var w = Math.ceil(el.getBoundingClientRect().width) || el.offsetWidth || 794;
+    var scale = Math.max(0.6, Math.min(2, Math.sqrt(PDF_MAX_AREA / (w * Math.max(1, h)))));
+    el.setAttribute('data-pdf-alvo', '1');
+    var opts = {
+      scale: scale, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, imageTimeout: 15000,
+      windowWidth: Math.max(900, document.documentElement.clientWidth),
+      onclone: function (doc) {
+        doc.body.classList.add('pdf-mode');
+        /* economiza memória no iPhone: só decodifica as imagens do bloco atual */
+        var alvo = doc.querySelector('[data-pdf-alvo="1"]');
+        var imgs = doc.querySelectorAll('img');
+        for (var i = 0; i < imgs.length; i++) if (alvo && !alvo.contains(imgs[i])) imgs[i].removeAttribute('src');
+      }
+    };
+    if (y0 != null) { opts.x = 0; opts.y = y0; opts.width = w; opts.height = h; }
+    return window.html2canvas(el, opts).then(function (cv) { el.removeAttribute('data-pdf-alvo'); return { cv: cv, cssW: w }; },
+      function (e) { el.removeAttribute('data-pdf-alvo'); throw e; });
+  }
+  function canvasParaImg(cv, sy, sh) {
+    var out = cv;
+    if (sy != null && (sy > 0 || sh < cv.height)) {
+      out = document.createElement('canvas'); out.width = cv.width; out.height = Math.max(1, sh);
+      var c = out.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, out.width, out.height);
+      c.drawImage(cv, 0, sy, cv.width, sh, 0, 0, cv.width, sh);
+    }
+    var url = out.toDataURL('image/jpeg', 0.9), r = { url: url, w: out.width, h: out.height };
+    if (out !== cv) { out.width = out.height = 0; }
+    return r;
+  }
+  function visivel(el) { return !!el && el.getClientRects().length > 0 && el.offsetHeight > 0; }
+  function listarBlocos(reportEl) {
+    var blocos = [];
+    var kids = reportEl.children;
+    for (var i = 0; i < kids.length; i++) {
+      var k = kids[i];
+      if (!visivel(k)) continue;
+      if (k.id === 'secSlots') {
+        var cs = k.children;
+        for (var j = 0; j < cs.length; j++) {
+          var c = cs[j];
+          if (!visivel(c)) continue;
+          if (c.id === 'slotsContainer') {
+            var slots = c.querySelectorAll('.slot');
+            for (var s = 0; s < slots.length; s++) if (visivel(slots[s])) blocos.push({ el: slots[s] });
+          } else blocos.push({ el: c, keep: true });
+        }
+      } else if (k.id === 'secAcoes' && k.querySelector('tr.pdf-acao-tr')) {
+        blocos.push({ el: k, rows: 'tr.pdf-acao-tr', head: 'thead' });
+      } else blocos.push({ el: k });
+    }
+    return blocos;
+  }
+  /* devolve peças {url,w,h,cssW,keep,head} prontas para posicionar */
+  async function capturarPecas(b) {
+    var el = b.el, top = el.getBoundingClientRect().top, H = Math.ceil(el.getBoundingClientRect().height);
+    if (!b.rows) {
+      var r = await capturarBloco(el, null, H);
+      var p = canvasParaImg(r.cv); r.cv.width = r.cv.height = 0;
+      p.cssW = r.cssW; p.keep = !!b.keep; return [p];
+    }
+    /* bloco fatiável: corta só entre linhas */
+    var rows = el.querySelectorAll(b.rows), cuts = [0];
+    for (var i = 1; i < rows.length; i++) cuts.push(Math.round(rows[i].getBoundingClientRect().top - top));
+    cuts.push(H);
+    var headEl = b.head && el.querySelector(b.head), headRange = null;
+    if (headEl) { var hr = headEl.getBoundingClientRect(); headRange = [Math.round(hr.top - top), Math.round(hr.bottom - top)]; }
+    var pieces = [];
+    for (var a = 0; a < cuts.length - 1; a++) pieces.push([cuts[a], cuts[a + 1]]);
+    var out = [], headImg = null, idx = 0;
+    while (idx < pieces.length) {
+      var y0 = pieces[idx][0], end = idx;
+      while (end + 1 < pieces.length && pieces[end + 1][1] - y0 <= PDF_CHUNK_CSS) end++;
+      var y1 = pieces[end][1];
+      var cap = await capturarBloco(el, y0, y1 - y0), k = cap.cv.height / (y1 - y0);
+      if (headRange && !headImg && headRange[0] >= y0 && headRange[1] <= y1) {
+        headImg = canvasParaImg(cap.cv, Math.round((headRange[0] - y0) * k), Math.round((headRange[1] - headRange[0]) * k));
+        headImg.cssW = cap.cssW;
+      }
+      for (var q = idx; q <= end; q++) {
+        var sy = Math.round((pieces[q][0] - y0) * k), ey = q === end ? cap.cv.height : Math.round((pieces[q][1] - y0) * k);
+        var pc = canvasParaImg(cap.cv, sy, ey - sy); pc.cssW = cap.cssW;
+        if (q > 0) pc.head = 'H';
+        out.push(pc);
+      }
+      cap.cv.width = cap.cv.height = 0;
+      idx = end + 1;
+    }
+    out.forEach(function (p) { if (p.head) p.head = headImg; });
+    return out;
+  }
+
   async function gerarPdfPaginado() {
     setLoading(true, 'Gerando PDF…');
     var ok = await waitForLibs(8000);
@@ -1468,55 +1574,46 @@
     await new Promise(function (r) { setTimeout(r, 250); });
     var reportEl = $('report'), filename = pdfFilename();
     try {
-      var rr = reportEl.getBoundingClientRect();
-      /* candidatos de quebra: topo de cada card e de cada item (menos o 1º item, que fica com o título) */
-      var cands = [];
-      var els = reportEl.querySelectorAll('section.card, .slot, .acao-row, tr.pdf-acao-tr');
-      var firstSlot = true, firstAcao = true, firstTr = true;
-      for (var i = 0; i < els.length; i++) {
-        var el = els[i];
-        if (!el.offsetParent && el.offsetHeight === 0) continue;
-        if (el.classList.contains('slot')) { if (firstSlot) { firstSlot = false; continue; } }
-        if (el.classList.contains('pdf-acao-tr')) { if (firstTr) { firstTr = false; continue; } }
-        if (el.classList.contains('acao-row')) { if (el.classList.contains('empty-omit')) continue; if (firstAcao) { firstAcao = false; continue; } }
-        cands.push(el.getBoundingClientRect().top - rr.top - 6);
-      }
-      var canvas = await window.html2canvas(reportEl, {
-        scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', logging: false, imageTimeout: 15000,
-        windowWidth: Math.max(900, document.documentElement.clientWidth),
-        onclone: function (doc) { doc.body.classList.add('pdf-mode'); }
-      });
-      var pxPerCss = canvas.width / rr.width;
-      cands = cands.map(function (y) { return Math.round(y * pxPerCss); }).filter(function (y) { return y > 0; }).sort(function (a, b) { return a - b; });
-
-      var pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      var pdf = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
       var PW = pdf.internal.pageSize.getWidth(), PH = pdf.internal.pageSize.getHeight();
-      var margin = 8, footer = 9, usableW = PW - margin * 2, usableH = PH - margin * 2 - footer;
-      var pagePx = Math.floor(usableH * canvas.width / usableW);
-      var slices = [], y0 = 0;
-      while (y0 < canvas.height - 4) {
-        var limit = y0 + pagePx, cut = limit;
-        if (limit < canvas.height) {
-          var best = -1;
-          for (var j = 0; j < cands.length; j++) if (cands[j] > y0 + pagePx * 0.25 && cands[j] <= limit) best = cands[j];
-          if (best > 0) cut = best;
-        } else cut = canvas.height;
-        slices.push([y0, cut]); y0 = cut;
+      var margin = 8, footer = 9, gap = 3, usableW = PW - margin * 2, usableH = PH - margin * 2 - footer;
+      var bottom = margin + usableH, mmPerCss = usableW / (reportEl.getBoundingClientRect().width || 794);
+      var blocos = listarBlocos(reportEl), pecas = [];
+      for (var i = 0; i < blocos.length; i++) {
+        setLoading(true, 'Gerando PDF… ' + Math.round((i / blocos.length) * 100) + '%');
+        var ps = await capturarPecas(blocos[i]);
+        for (var j = 0; j < ps.length; j++) pecas.push(ps[j]);
+        await new Promise(function (r) { setTimeout(r, 0); });
+      }
+      function dims(p) {
+        var w = p.cssW * mmPerCss, h = w * p.h / p.w;
+        if (h > usableH) { w = w * usableH / h; h = usableH; } /* bloco maior que a página: reduz, nunca corta */
+        return { w: w, h: h };
+      }
+      var y = margin, pageHasContent = false, pages = 1;
+      function novaPagina() { pdf.addPage(); pages++; y = margin; pageHasContent = false; }
+      function por(p, d) {
+        pdf.addImage(p.url, 'JPEG', margin + (usableW - d.w) / 2, y, d.w, d.h, undefined, 'FAST');
+        y += d.h + gap; pageHasContent = true;
+      }
+      for (var n = 0; n < pecas.length; n++) {
+        var p = pecas[n], d = dims(p), need = d.h - (p.head && pageHasContent ? gap : 0);
+        if (p.keep && pecas[n + 1]) need += gap + dims(pecas[n + 1]).h; /* título não fica sozinho no fim da página */
+        if (pageHasContent && y + Math.min(need, usableH) > bottom + 0.01) novaPagina();
+        if (!pageHasContent && pages > 1 && p.head) { var dh = dims(p.head); por(p.head, dh); y -= gap; }
+        else if (pageHasContent && p.head) y -= gap; /* linhas da mesma tabela ficam coladas */
+        por(p, d);
       }
       var emp = ($('empresa').value || '').trim(), num = ($('numRelatorio').value || '').trim();
       var foot = 'Relatório de Inspeção de Rotina · Nº ' + (num || '—') + (emp ? ' · ' + emp : '');
-      slices.forEach(function (sl, idx) {
-        var h = sl[1] - sl[0];
-        var pc = document.createElement('canvas'); pc.width = canvas.width; pc.height = h;
-        var pctx = pc.getContext('2d'); pctx.fillStyle = '#fff'; pctx.fillRect(0, 0, pc.width, h);
-        pctx.drawImage(canvas, 0, sl[0], canvas.width, h, 0, 0, canvas.width, h);
-        if (idx) pdf.addPage();
-        pdf.addImage(pc.toDataURL('image/jpeg', 0.9), 'JPEG', margin, margin, usableW, h * usableW / canvas.width);
+      var total = pdf.internal.getNumberOfPages();
+      for (var pg = 1; pg <= total; pg++) {
+        pdf.setPage(pg);
         pdf.setDrawColor(200); pdf.setLineWidth(0.2); pdf.line(margin, PH - margin - 5, PW - margin, PH - margin - 5);
         pdf.setFontSize(8); pdf.setTextColor(90);
         pdf.text(foot, margin, PH - margin);
-        pdf.text('Página ' + (idx + 1) + ' de ' + slices.length, PW - margin, PH - margin, { align: 'right' });
-      });
+        pdf.text('Página ' + pg + ' de ' + total, PW - margin, PH - margin, { align: 'right' });
+      }
       embedReportData(pdf);
       var blob = pdf.output('blob');
       limparCaptura(); setLoading(false);
@@ -1824,7 +1921,7 @@
   function syncOnline() { document.body.classList.toggle('is-offline', navigator.onLine === false); }
   window.addEventListener('online', syncOnline);
   window.addEventListener('offline', syncOnline);
-  var APP_VERSION = 'v5';
+  var APP_VERSION = 'v6';
   function flushDraftNow() {
     clearTimeout(saveTimer);
     try { return idbDo('readwrite', function (st) { return st.put(collectDraft(), DRAFT_KEY); }).catch(function () {}); }
