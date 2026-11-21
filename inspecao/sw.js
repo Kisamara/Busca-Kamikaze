@@ -1,5 +1,5 @@
 /* Inspeção SST — service worker (offline + atualização automática) */
-var VERSION = 'inspecao-v5-2026-10-29a';
+var VERSION = 'inspecao-v6-2026-11-20a';
 var SHELL = ['./', './index.html', './manifest.webmanifest'];
 var STATIC = ['./lib/html2canvas.min.js', './lib/jspdf.umd.min.js',
   './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png'];
